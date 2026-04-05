@@ -30,6 +30,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/rastreamento/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/fornecedores").permitAll()
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/empresas").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/pedidos").hasAuthority("supplier")
                         .anyRequest().authenticated()
                 )
                 .build();

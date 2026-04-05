@@ -22,16 +22,6 @@ public class FornecedorService {
         this.jwtService = jwtService;
     }
 
-    public Fornecedor findByCnpj(String cnpj) {
-        Fornecedor supplier = fornecedorRepository.findByCnpj(cnpj);
-
-        if (supplier== null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Fornecedor não encontrado");
-        }
-
-        return supplier;
-    }
-
     public String login(LoginFornecedorDTO loginFornecedorDTO) {
         Fornecedor supplier = fornecedorRepository.findByCnpj(loginFornecedorDTO.getCnpj());
 
