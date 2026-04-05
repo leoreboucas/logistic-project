@@ -10,6 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PedidoResponseDTO {
-    private String trackingCode;
     private String status;
+    private String trackingCode;
 }

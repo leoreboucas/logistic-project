@@ -19,6 +19,7 @@ public class Cliente {
     private String firstName;
     private String secondName;
     private String password;
+    @Column(unique = true)
     private String cpf;
     @Column(name = "date_of_birth")
     private LocalDateTime dateOfBirth;
@@ -36,4 +37,9 @@ public class Cliente {
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

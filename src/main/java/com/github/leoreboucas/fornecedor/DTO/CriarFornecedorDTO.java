@@ -32,7 +32,6 @@ public class CriarFornecedorDTO {
     @NotBlank
     @NotNull
     private String houseNumber;
-    @NotBlank
     private String complement;
     @NotBlank
     @NotNull

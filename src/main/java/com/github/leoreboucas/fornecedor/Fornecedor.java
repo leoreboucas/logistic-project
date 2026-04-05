@@ -18,6 +18,7 @@ public class Fornecedor {
     private long id;
     private String name;
     private String password;
+    @Column(unique = true)
     private String cnpj;
     @Column(name = "cell_number")
     private String cellNumber;
@@ -34,4 +35,8 @@ public class Fornecedor {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }
