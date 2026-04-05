@@ -19,6 +19,6 @@ public class RastreamentoController {
     @GetMapping("/{trackingCode}")
     public PedidoResponseDTO rastrear(@PathVariable String trackingCode) {
         Pedido pedido = pedidoService.findByTrackingCode(trackingCode);
-        return new PedidoResponseDTO(pedido.getTrackingCode(), pedido.getStatus());
+        return new PedidoResponseDTO(pedido.getTrackingCode(), pedido.getStatus().toString());
     }
 }

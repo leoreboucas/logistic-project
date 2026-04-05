@@ -27,7 +27,7 @@ public class PedidoController {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
         Pedido order = pedidoService.createOrderBySupplier(criarPedidoDTO, cnpj);
 
-        return new PedidoResponseDTO(order.getStatus(), order.getTrackingCode());
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }
 
     @GetMapping
@@ -35,5 +35,14 @@ public class PedidoController {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
         return pedidoService.getAllOrdersByCnpj(cnpj);
+    }
+
+    @PatchMapping("/{trackingCode}/cancelar")
+    public PedidoResponseDTO cancelOrderBySupplierController (@PathVariable String trackingCode) {
+        String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = pedidoService.cancelOrderBySupplier(trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }
 }

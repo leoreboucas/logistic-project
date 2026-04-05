@@ -66,7 +66,7 @@ public class PedidoService {
         newOrder.setFornecedor(supplier);
         newOrder.setCliente(costumer);
         newOrder.setTrackingCode(trackingCode);
-        newOrder.setStatus("AGUARDANDO_POSTAGEM");
+        newOrder.setStatus(PedidoStatus.AGUARDANDO_POSTAGEM);
         newOrder.setWeight(criarPedidoDTO.getWeight());
         newOrder.setLength(criarPedidoDTO.getLength());
         newOrder.setWidth(criarPedidoDTO.getWidth());
@@ -83,10 +83,40 @@ public class PedidoService {
         return allOrders.stream()
                 .map(order -> new ListarPedidosDTO(
                         order.getTrackingCode(),
-                        order.getStatus(),
+                        order.getStatus().toString(),
                         order.getForecastDelivery(),
                         order.getCliente().getFirstName() + " " + order.getCliente().getSecondName()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public Pedido cancelOrderBySupplier (String trackingCode, String cnpj) {
+        Fornecedor supplier = fornecedorRepository.findByCnpj(cnpj);
+
+        if(supplier == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
+        }
+
+        Pedido order = pedidoRepository.findByTrackingCode(trackingCode);
+
+        if(!order.getFornecedor().getCnpj().equals(cnpj)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não tem permissão para alterar status desse pedido.");
+        }
+
+        List<PedidoStatus> allowedStatus = List.of(
+                PedidoStatus.AGUARDANDO_POSTAGEM,
+                PedidoStatus.POSTADO,
+                PedidoStatus.EM_TRIAGEM,
+                PedidoStatus.EM_TRANSITO
+        );
+
+        if(!allowedStatus.contains(order.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser cancelado no status atual.");
+        }
+
+        order.setStatus(PedidoStatus.CANCELADO);
+
+        pedidoRepository.save(order);
+        return order;
     }
 }

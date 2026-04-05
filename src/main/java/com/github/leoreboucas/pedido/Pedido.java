@@ -25,7 +25,8 @@ public class Pedido {
     private Cliente cliente;
     @Column(name = "tracking_code")
     private String trackingCode;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private PedidoStatus status;
     private double weight;
     private double length;
     private double width;
