@@ -1,6 +1,11 @@
 package com.github.leoreboucas.cliente;
 
 import com.github.leoreboucas.cliente.DTO.CriarClienteDTO;
+import com.github.leoreboucas.cliente.DTO.LoginClienteDTO;
+import com.github.leoreboucas.fornecedor.DTO.LoginFornecedorDTO;
+import com.github.leoreboucas.fornecedor.Fornecedor;
+import com.github.leoreboucas.infra.security.JwtService;
+import org.apache.juli.logging.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,10 +17,22 @@ import java.util.Optional;
 public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public ClienteService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder) {
+    public ClienteService(ClienteRepository clienteRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.clienteRepository = clienteRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
+
+    public String login(LoginClienteDTO loginClienteDTO) {
+        Cliente costumer = clienteRepository.findByCpf(loginClienteDTO.getCpf());
+
+        if (costumer == null || !passwordEncoder.matches(loginClienteDTO.getPassword(), costumer.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "CPF e/ou Senha inválidos! Tente novamente.");
+        }
+
+        return jwtService.generateToken(costumer.getCpf(), "costumer");
     }
 
     public Cliente register (CriarClienteDTO criarClienteDTO) {

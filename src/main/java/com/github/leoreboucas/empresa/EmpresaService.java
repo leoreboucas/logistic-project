@@ -30,7 +30,7 @@ public class EmpresaService {
         }
 
         return jwtService.generateToken(enterprise.getCnpj(), "enterprise");
-    };
+    }
 
     public Empresa register(CriarEmpresaDTO criarEmpresaDTO) {
         Optional<Empresa> existingEnterprise = Optional.ofNullable(empresaRepository.findByCnpj(criarEmpresaDTO.getCnpj()));
