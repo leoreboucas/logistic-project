@@ -3,15 +3,12 @@ import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
-import com.github.leoreboucas.infra.security.JwtFilter;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
