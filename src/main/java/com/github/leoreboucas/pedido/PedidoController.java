@@ -1,12 +1,14 @@
 package com.github.leoreboucas.pedido;
 
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
+import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
 import com.github.leoreboucas.pedido.DTO.PedidoResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -26,5 +28,12 @@ public class PedidoController {
         Pedido order = pedidoService.createOrderBySupplier(criarPedidoDTO, cnpj);
 
         return new PedidoResponseDTO(order.getStatus(), order.getTrackingCode());
+    }
+
+    @GetMapping
+    public List<ListarPedidosDTO> getAllOrdersController () {
+        String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        return pedidoService.getAllOrdersByCnpj(cnpj);
     }
 }

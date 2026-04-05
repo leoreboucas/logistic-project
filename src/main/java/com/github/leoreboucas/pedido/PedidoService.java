@@ -4,13 +4,16 @@ import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
+import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidoService {
@@ -71,7 +74,19 @@ public class PedidoService {
         newOrder.setObservation(criarPedidoDTO.getObservation());
 
         pedidoRepository.save(newOrder);
-
         return newOrder;
+    }
+
+    public List<ListarPedidosDTO> getAllOrdersByCnpj (String cnpj) {
+        List<Pedido> allOrders = pedidoRepository.findByFornecedorCnpj(cnpj);
+
+        return allOrders.stream()
+                .map(order -> new ListarPedidosDTO(
+                        order.getTrackingCode(),
+                        order.getStatus(),
+                        order.getForecastDelivery(),
+                        order.getCliente().getFirstName() + " " + order.getCliente().getSecondName()
+                ))
+                .collect(Collectors.toList());
     }
 }
