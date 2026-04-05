@@ -3,13 +3,18 @@ import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
+import com.github.leoreboucas.historicopedido.HistoricoPedido;
+import com.github.leoreboucas.historicopedido.HistoricoPedidoRepository;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
 import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
+import com.github.leoreboucas.rastreamento.DTO.HistoricoItemDTO;
+import com.github.leoreboucas.rastreamento.DTO.RastreamentoResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,21 +25,40 @@ public class PedidoService {
     private final PedidoRepository pedidoRepository;
     private final FornecedorRepository fornecedorRepository;
     private final ClienteRepository clienteRepository;
+    private final HistoricoPedidoRepository historicoPedidoRepository;
 
-    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository) {
+    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, HistoricoPedidoRepository historicoPedidoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.fornecedorRepository = fornecedorRepository;
         this.clienteRepository = clienteRepository;
+        this.historicoPedidoRepository = historicoPedidoRepository;
     }
 
 
-    public Pedido findByTrackingCode(String trackingCode) {
-        Pedido pedido = pedidoRepository.findByTrackingCode(trackingCode);
+    public RastreamentoResponseDTO getOrdersHistoryByTrackingCode(String trackingCode) {
+        Pedido order = pedidoRepository.findByTrackingCode(trackingCode);
 
-        if (pedido == null) {
+        if(order == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado");
         }
-        return pedido;
+
+        List<HistoricoPedido> ordersHistory = historicoPedidoRepository.findByOrderTrackingCode(trackingCode);
+
+        RastreamentoResponseDTO rastreamentoResponseDTO = new RastreamentoResponseDTO();
+
+        List<HistoricoItemDTO> itensHistory = ordersHistory.stream()
+                .map(orderHistory -> new HistoricoItemDTO(
+                        orderHistory.getPreviousStatus() != null ? orderHistory.getPreviousStatus().toString() : null,
+                        orderHistory.getNewStatus().toString(),
+                        orderHistory.getObservation(),
+                        orderHistory.getDateOfChange()
+                ))
+                .collect(Collectors.toList());
+
+        rastreamentoResponseDTO.setTrackingCode(trackingCode);
+        rastreamentoResponseDTO.setStatus(order.getStatus().toString());
+        rastreamentoResponseDTO.setOrdersHistory(itensHistory);
+        return rastreamentoResponseDTO;
     }
 
     public String generateTrackingCode() {
@@ -73,7 +97,16 @@ public class PedidoService {
         newOrder.setDepth(criarPedidoDTO.getDepth());
         newOrder.setObservation(criarPedidoDTO.getObservation());
 
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setOrder(newOrder);
+        orderHistory.setPreviousStatus(null);
+        orderHistory.setNewStatus(PedidoStatus.AGUARDANDO_POSTAGEM);
+        orderHistory.setObservation(null);
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
         pedidoRepository.save(newOrder);
+        historicoPedidoRepository.save(orderHistory);
+
         return newOrder;
     }
 
@@ -98,6 +131,8 @@ public class PedidoService {
         }
 
         Pedido order = pedidoRepository.findByTrackingCode(trackingCode);
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setPreviousStatus(order.getStatus());
 
         if(!order.getFornecedor().getCnpj().equals(cnpj)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não tem permissão para alterar status desse pedido.");
@@ -116,7 +151,14 @@ public class PedidoService {
 
         order.setStatus(PedidoStatus.CANCELADO);
 
+        orderHistory.setOrder(order);
+        orderHistory.setNewStatus(PedidoStatus.CANCELADO);
+        orderHistory.setObservation(null);
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
         pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+
         return order;
     }
 }
