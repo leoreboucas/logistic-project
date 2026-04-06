@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
                         .requestMatchers(HttpMethod.POST, "/empresas").permitAll()
                         .requestMatchers(HttpMethod.POST, "/entregadores").hasAuthority("enterprise")
+                        .requestMatchers(HttpMethod.POST, "/centro-distribuicoes").hasAuthority("enterprise")
                         .requestMatchers(HttpMethod.POST, "/pedidos").hasAuthority("supplier")
                         .anyRequest().authenticated()
                 )

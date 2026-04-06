@@ -1,5 +1,5 @@
-package com.github.leoreboucas.cliente.DTO;
-import jakarta.validation.constraints.Email;
+package com.github.leoreboucas.centrodistribuicao.DTO;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -7,33 +7,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CriarClienteDTO {
+public class CriarCentroDistribuicaoDTO {
     @NotBlank
     @NotNull
-    private String firstName;
-    @NotBlank
-    @NotNull
-    private String secondName;
-    @Email
-    @NotBlank
-    private String email;
-    @NotBlank
-    @NotNull
-    private String password;
-    @NotBlank
-    @NotNull
-    private String cpf;
-    @NotNull
-    private LocalDateTime dateOfBirth;
-    @NotBlank
-    @NotNull
-    private String cellNumber;
+    private String name;
     @NotBlank
     @NotNull
     private String cep;
