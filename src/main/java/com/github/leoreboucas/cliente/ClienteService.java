@@ -2,10 +2,7 @@ package com.github.leoreboucas.cliente;
 
 import com.github.leoreboucas.cliente.DTO.CriarClienteDTO;
 import com.github.leoreboucas.cliente.DTO.LoginClienteDTO;
-import com.github.leoreboucas.fornecedor.DTO.LoginFornecedorDTO;
-import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.infra.security.JwtService;
-import org.apache.juli.logging.Log;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

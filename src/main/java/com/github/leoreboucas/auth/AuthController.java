@@ -4,6 +4,8 @@ import com.github.leoreboucas.cliente.ClienteService;
 import com.github.leoreboucas.cliente.DTO.LoginClienteDTO;
 import com.github.leoreboucas.empresa.DTO.LoginEmpresaDTO;
 import com.github.leoreboucas.empresa.EmpresaService;
+import com.github.leoreboucas.entregador.DTO.LoginEntregadorDTO;
+import com.github.leoreboucas.entregador.EntregadorService;
 import com.github.leoreboucas.fornecedor.DTO.LoginFornecedorDTO;
 import com.github.leoreboucas.fornecedor.FornecedorService;
 import jakarta.validation.Valid;
@@ -15,10 +17,12 @@ public class AuthController {
     private final FornecedorService fornecedorService;
     private final EmpresaService empresaService;
     private final ClienteService clienteService;
-    public AuthController (FornecedorService fornecedorService, EmpresaService empresaService, ClienteService clienteService) {
+    private final EntregadorService entregadorService;
+    public AuthController (FornecedorService fornecedorService, EmpresaService empresaService, ClienteService clienteService, EntregadorService entregadorService) {
         this.fornecedorService = fornecedorService;
         this.empresaService = empresaService;
         this.clienteService = clienteService;
+        this.entregadorService = entregadorService;
     }
 
     @PostMapping("/fornecedor")
@@ -37,5 +41,11 @@ public class AuthController {
     @ResponseBody
     public String loginCliente(@RequestBody @Valid LoginClienteDTO loginClienteDTO) {
         return clienteService.login(loginClienteDTO);
+    }
+
+    @PostMapping("/entregador")
+    @ResponseBody
+    public String loginEntregador(@RequestBody @Valid LoginEntregadorDTO loginEntregadorDTO) {
+        return entregadorService.login(loginEntregadorDTO);
     }
 }
