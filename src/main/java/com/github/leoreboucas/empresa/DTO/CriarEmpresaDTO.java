@@ -1,5 +1,6 @@
 package com.github.leoreboucas.empresa.DTO;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,9 @@ public class CriarEmpresaDTO {
     @NotBlank
     @NotNull
     private String name;
+    @Email
+    @NotBlank
+    private String email;
     @NotBlank
     @NotNull
     private String password;

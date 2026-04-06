@@ -19,6 +19,8 @@ public class Empresa {
     private String name;
     private String password;
     @Column(unique = true)
+    private String email;
+    @Column(unique = true)
     private String cnpj;
     @Column(name = "cell_number")
     private String cellNumber;

@@ -18,6 +18,8 @@ public class Cliente {
     private long id;
     private String firstName;
     private String secondName;
+    @Column(unique = true)
+    private String email;
     private String password;
     @Column(unique = true)
     private String cpf;

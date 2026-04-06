@@ -25,6 +25,8 @@ public class Entregador {
     private String firstName;
     private String secondName;
     @Column(unique = true)
+    private String email;
+    @Column(unique = true)
     private String cpf;
     private String password;
     @Column(name = "date_of_birth")

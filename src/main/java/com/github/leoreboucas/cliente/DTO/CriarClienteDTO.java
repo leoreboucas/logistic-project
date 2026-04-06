@@ -1,4 +1,6 @@
 package com.github.leoreboucas.cliente.DTO;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -19,6 +21,9 @@ public class CriarClienteDTO {
     @NotBlank
     @NotNull
     private String secondName;
+    @Email
+    @NotBlank
+    private String email;
     @NotBlank
     @NotNull
     private String password;
