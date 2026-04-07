@@ -1,6 +1,7 @@
 package com.github.leoreboucas.pedido;
 import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
+import com.github.leoreboucas.entregaparcial.EntregaParcial;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.historicopedido.HistoricoPedido;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.github.leoreboucas.pedido.PedidoStatus.*;
 
 @Service
 public class PedidoService {
@@ -140,7 +143,7 @@ public class PedidoService {
         List<PedidoStatus> allowedStatus = List.of(
                 PedidoStatus.AGUARDANDO_POSTAGEM,
                 PedidoStatus.POSTADO,
-                PedidoStatus.EM_TRIAGEM,
+                EM_TRIAGEM,
                 PedidoStatus.EM_TRANSITO
         );
 
@@ -159,5 +162,28 @@ public class PedidoService {
         historicoPedidoRepository.save(orderHistory);
 
         return order;
+    }
+
+    public Pedido updateStatusByPartialDelivery (EntregaParcial partialDelivery) {
+        Pedido order = partialDelivery.getOrder();
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setPreviousStatus(order.getStatus());
+
+        switch (partialDelivery.getPartialDeliveryStatus()) {
+            case EM_TRANSITO -> order.setStatus(PedidoStatus.EM_TRANSITO);
+            case ENTREGUE -> order.setStatus(ENTREGUE);
+            case DEVOLVIDO -> order.setStatus(PedidoStatus.DEVOLVIDO);
+        }
+
+        orderHistory.setOrder(order);
+        orderHistory.setNewStatus(order.getStatus());
+        orderHistory.setObservation("Atualização automática de status por entrega parcial.");
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
+        pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+
+        return order;
+
     }
 }
