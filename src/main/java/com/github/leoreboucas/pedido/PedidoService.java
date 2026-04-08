@@ -1,4 +1,5 @@
 package com.github.leoreboucas.pedido;
+import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.entregaparcial.EntregaParcial;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -155,7 +157,7 @@ public class PedidoService {
 
         orderHistory.setOrder(order);
         orderHistory.setNewStatus(PedidoStatus.CANCELADO);
-        orderHistory.setObservation(null);
+        orderHistory.setObservation("Pedido cancelado.");
         orderHistory.setDateOfChange(LocalDateTime.now());
 
         pedidoRepository.save(order);
@@ -164,26 +166,52 @@ public class PedidoService {
         return order;
     }
 
-    public Pedido updateStatusByPartialDelivery (EntregaParcial partialDelivery) {
+    public void updateStatusByPartialDelivery (EntregaParcial partialDelivery) {
         Pedido order = partialDelivery.getOrder();
         HistoricoPedido orderHistory = new HistoricoPedido();
         orderHistory.setPreviousStatus(order.getStatus());
+        CentroDistribuicao distribuitionCenter = partialDelivery.getDestinationCenter();
 
-        switch (partialDelivery.getPartialDeliveryStatus()) {
-            case EM_TRANSITO -> order.setStatus(PedidoStatus.EM_TRANSITO);
-            case ENTREGUE -> order.setStatus(ENTREGUE);
-            case DEVOLVIDO -> order.setStatus(PedidoStatus.DEVOLVIDO);
+        switch (distribuitionCenter.getCenterDistribuitionType()) {
+            case TRANSACIONAL -> order.setStatus(EM_TRANSITO);
+            case ULTIMA_MILHA -> order.setStatus(EM_DISTRIBUICAO);
         }
+        switch (partialDelivery.getPartialDeliveryStatus()) {
+            case AGUARDANDO_POSTAGEM -> order.setStatus(POSTADO);
+            case POSTADO -> order.setStatus(EM_TRIAGEM);
+            case EM_TRIAGEM -> order.setStatus(EM_TRANSITO);
+            case EM_DISTRIBUICAO -> order.setStatus(SAIU_PARA_ENTREGA);
+            case SAIU_PARA_ENTREGA -> order.setStatus(TENTATIVA_ENTREGA);
+        }
+        switch (distribuitionCenter.getCenterDistribuitionType()) {
+            case TRANSACIONAL -> {
 
+                switch (partialDelivery.getPartialDeliveryStatus()) {
+                    case AGUARDANDO_POSTAGEM -> order.setStatus(POSTADO);
+                    case POSTADO -> order.setStatus(EM_TRIAGEM);
+                    case EM_TRIAGEM, EM_TRANSITO -> order.setStatus(EM_TRANSITO);
+                    default -> throw new IllegalStateException("Valor inesperado: " + distribuitionCenter.getCenterDistribuitionType());
+                }
+            }
+            case ULTIMA_MILHA -> {
+                switch (partialDelivery.getPartialDeliveryStatus()) {
+                    case EM_TRANSITO -> order.setStatus(EM_DISTRIBUICAO);
+                    case EM_DISTRIBUICAO -> order.setStatus(SAIU_PARA_ENTREGA);
+                    case SAIU_PARA_ENTREGA -> order.setStatus(TENTATIVA_ENTREGA);
+                    case ENTREGUE -> order.setStatus(ENTREGUE);
+                    case DEVOLVIDO -> order.setStatus(DEVOLVIDO);
+                    default -> throw new IllegalStateException("Valor inesperado: " + distribuitionCenter.getCenterDistribuitionType());
+                }
+            }
+
+        }
         orderHistory.setOrder(order);
         orderHistory.setNewStatus(order.getStatus());
-        orderHistory.setObservation("Atualização automática de status por entrega parcial.");
+        orderHistory.setObservation("Chegou em: " + distribuitionCenter.getName() + " às " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")));
         orderHistory.setDateOfChange(LocalDateTime.now());
 
         pedidoRepository.save(order);
         historicoPedidoRepository.save(orderHistory);
-
-        return order;
 
     }
 }

@@ -26,6 +26,9 @@ public class CentroDistribuicao {
     private String name;
     private String cep;
     private String street;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "center_distribuition_type")
+    private TipoCentroDistribuicao centerDistribuitionType;
     @Column(name = "house_number")
     private String houseNumber;
     private String complement;

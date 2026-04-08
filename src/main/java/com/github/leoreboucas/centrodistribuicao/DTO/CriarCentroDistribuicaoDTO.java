@@ -1,5 +1,6 @@
 package com.github.leoreboucas.centrodistribuicao.DTO;
 
+import com.github.leoreboucas.centrodistribuicao.TipoCentroDistribuicao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,8 @@ public class CriarCentroDistribuicaoDTO {
     @NotBlank
     @NotNull
     private String street;
+    @NotNull
+    private TipoCentroDistribuicao centerDistribuitionType;
     @NotBlank
     @NotNull
     private String houseNumber;

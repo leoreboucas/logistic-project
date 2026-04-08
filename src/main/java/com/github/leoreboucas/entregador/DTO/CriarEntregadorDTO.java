@@ -34,7 +34,6 @@ public class CriarEntregadorDTO {
     @NotBlank
     @NotNull
     private String password;
-    @NotBlank
     @NotNull
     private LocalDateTime dateOfBirth;
     @NotBlank
@@ -59,19 +58,14 @@ public class CriarEntregadorDTO {
     @NotBlank
     @NotNull
     private String state;
-    @NotBlank
     @NotNull
     private CategoriaCNH cnhCategory;
-    @NotBlank
     @NotNull
     private TipoVeiculo vehicleType;
-    @NotBlank
     @NotNull
     private Disponibilidade availability;
-    @NotBlank
     @NotNull
     private double capacity;
-    @NotBlank
     @NotNull
     private TipoEntregador deliveryManType;
 }

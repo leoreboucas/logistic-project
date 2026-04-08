@@ -43,6 +43,7 @@ public class CentroDistribuicaoService {
         newDistribuitionCenter.setHouseNumber(criarCentroDistribuicaoDTO.getHouseNumber());
         newDistribuitionCenter.setComplement(criarCentroDistribuicaoDTO.getComplement());
         newDistribuitionCenter.setNeighborhood(criarCentroDistribuicaoDTO.getNeighborhood());
+        newDistribuitionCenter.setCenterDistribuitionType(criarCentroDistribuicaoDTO.getCenterDistribuitionType());
         newDistribuitionCenter.setCity(criarCentroDistribuicaoDTO.getCity());
         newDistribuitionCenter.setState(criarCentroDistribuicaoDTO.getState());
 

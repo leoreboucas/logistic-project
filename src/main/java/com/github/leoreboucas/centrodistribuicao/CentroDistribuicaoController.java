@@ -35,6 +35,7 @@ public class CentroDistribuicaoController {
                 distribuitionCenter.getHouseNumber(),
                 distribuitionCenter.getComplement(),
                 distribuitionCenter.getNeighborhood(),
+                distribuitionCenter.getCenterDistribuitionType().toString(),
                 distribuitionCenter.getCity(),
                 distribuitionCenter.getState());
     }
@@ -53,6 +54,7 @@ public class CentroDistribuicaoController {
                         center.getHouseNumber(),
                         center.getComplement(),
                         center.getNeighborhood(),
+                        center.getCenterDistribuitionType().toString(),
                         center.getCity(),
                         center.getState()
                 ))

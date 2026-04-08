@@ -10,9 +10,14 @@ import com.github.leoreboucas.entregaparcial.DTO.CriarEntregaParcialDTO;
 import com.github.leoreboucas.pedido.Pedido;
 import com.github.leoreboucas.pedido.PedidoRepository;
 import com.github.leoreboucas.pedido.PedidoService;
+import com.github.leoreboucas.pedido.PedidoStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
+
+import static com.github.leoreboucas.pedido.PedidoStatus.*;
 
 @Service
 public class EntregaParcialService {
@@ -67,6 +72,19 @@ public class EntregaParcialService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de distribuição de destino não encontrado");
         }
 
+        StatusEntregaParcial expectStatus = verifyIfStatusIsValid(order.getStatus());
+
+        if (expectStatus == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Não é possível criar entrega parcial para o status atual do pedido.");
+        }
+
+
+        if (!criarEntregaParcialDTO.getPartialDeliveryStatus().equals(expectStatus)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status da entrega parcial incompatível com o status atual do pedido.");
+        }
+
+
+
         EntregaParcial newPartialDelivery = new EntregaParcial();
         newPartialDelivery.setOrder(order);
         newPartialDelivery.setDeliveryMan(deliveryMan);
@@ -77,10 +95,22 @@ public class EntregaParcialService {
         newPartialDelivery.setArrivalDate(criarEntregaParcialDTO.getArrivalDate());
 
         pedidoService.updateStatusByPartialDelivery(newPartialDelivery);
-
         entregaParcialRepository.save(newPartialDelivery);
 
         return newPartialDelivery;
 
+    }
+
+    private StatusEntregaParcial verifyIfStatusIsValid(PedidoStatus statusOrder) {
+        Map<PedidoStatus, StatusEntregaParcial> validTransitions = Map.of(
+                AGUARDANDO_POSTAGEM, StatusEntregaParcial.AGUARDANDO_POSTAGEM,
+                POSTADO, StatusEntregaParcial.POSTADO,
+                EM_TRIAGEM, StatusEntregaParcial.EM_TRIAGEM,
+                EM_TRANSITO, StatusEntregaParcial.EM_TRANSITO,
+                EM_DISTRIBUICAO, StatusEntregaParcial.EM_DISTRIBUICAO,
+                SAIU_PARA_ENTREGA, StatusEntregaParcial.SAIU_PARA_ENTREGA
+        );
+
+        return validTransitions.get(statusOrder);
     }
 }
