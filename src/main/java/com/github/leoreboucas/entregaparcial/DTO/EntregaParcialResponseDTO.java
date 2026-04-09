@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class EntregaParcialResponseDTO {
     private long id;
     private String trackingCode;
-    private String deliveryManName;
     private String partialDeliveryStatus;
     private LocalDateTime departureDate;
     private LocalDateTime arrivalDate;

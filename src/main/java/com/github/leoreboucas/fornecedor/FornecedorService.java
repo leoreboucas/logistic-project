@@ -52,6 +52,7 @@ public class FornecedorService {
         newSupplier.setCity(criarFornecedorDTO.getCity());
         newSupplier.setState(criarFornecedorDTO.getState());
 
+
         fornecedorRepository.save(newSupplier);
 
         return newSupplier;

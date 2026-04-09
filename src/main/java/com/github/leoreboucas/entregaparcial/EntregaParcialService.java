@@ -7,6 +7,9 @@ import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.entregador.EntregadorRepository;
 import com.github.leoreboucas.entregaparcial.DTO.CriarEntregaParcialDTO;
+import com.github.leoreboucas.fornecedor.Fornecedor;
+import com.github.leoreboucas.fornecedor.FornecedorRepository;
+import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.Pedido;
 import com.github.leoreboucas.pedido.PedidoRepository;
 import com.github.leoreboucas.pedido.PedidoService;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static com.github.leoreboucas.pedido.PedidoStatus.*;
@@ -26,79 +30,41 @@ public class EntregaParcialService {
     private final PedidoRepository pedidoRepository;
     private final EntregadorRepository entregadorRepository;
     private final CentroDistribuicaoRepository centroDistribuicaoRepository;
-    private final PedidoService pedidoService;
+    private final FornecedorRepository fornecedorRepository;
 
-    public EntregaParcialService(EntregaParcialRepository entregaParcialRepository, EmpresaRepository empresaRepository, PedidoRepository pedidoRepository, EntregadorRepository entregadorRepository, CentroDistribuicaoRepository centroDistribuicaoRepository, PedidoService pedidoService) {
+    public EntregaParcialService(EntregaParcialRepository entregaParcialRepository, EmpresaRepository empresaRepository, PedidoRepository pedidoRepository, EntregadorRepository entregadorRepository, CentroDistribuicaoRepository centroDistribuicaoRepository, FornecedorRepository fornecedorRepository) {
         this.entregaParcialRepository = entregaParcialRepository;
         this.empresaRepository = empresaRepository;
         this.pedidoRepository = pedidoRepository;
         this.entregadorRepository = entregadorRepository;
         this.centroDistribuicaoRepository = centroDistribuicaoRepository;
-        this.pedidoService = pedidoService;
+        this.fornecedorRepository = fornecedorRepository;
     }
 
-    public EntregaParcial register(CriarEntregaParcialDTO criarEntregaParcialDTO, String cnpj) {
-        Empresa enterprise = empresaRepository.findByCnpj(cnpj);
-
-        if(enterprise == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada");
+    public void registerPartialDeliveryByEnterprise (EnviarPedidoDTO enviarPedidoDTO, Pedido order, String cnpj) {
+        Entregador deliveryMan = entregadorRepository.findByCpf(enviarPedidoDTO.getDeliveryManCpf());
+        if (deliveryMan == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado! Verifique o CPF informado e tente novamente.");
         }
-
-        Pedido order = pedidoRepository.findByTrackingCode(criarEntregaParcialDTO.getTrackingCode());
-
-        if(order == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado");
+        CentroDistribuicao originCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(enviarPedidoDTO.getOriginCenter(), cnpj);
+        if (originCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Origem não encontrado! Verifique o nome informado e tente novamente.");
         }
-
-        Entregador deliveryMan = entregadorRepository.findByCpf(criarEntregaParcialDTO.getCpfDeliveryMan());
-
-        if(deliveryMan == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado");
-        }
-
-        CentroDistribuicao originCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(
-                criarEntregaParcialDTO.getOriginCenterName(), cnpj
-        );
-
-        if(originCenter == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de distribuição de origem não encontrado");
-        }
-
-        CentroDistribuicao destinationCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(
-                criarEntregaParcialDTO.getDestinationCenterName(), cnpj
-        );
-
-        if(destinationCenter == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de distribuição de destino não encontrado");
-        }
-
-        StatusEntregaParcial expectStatus = verifyIfStatusIsValid(order.getStatus());
-
-        if (expectStatus == null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Não é possível criar entrega parcial para o status atual do pedido.");
+        CentroDistribuicao destinationCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(enviarPedidoDTO.getDestinationCenter(), cnpj);
+        if (destinationCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Destino não encontrado! Verifique o nome informado e tente novamente.");
         }
 
 
-        if (!criarEntregaParcialDTO.getPartialDeliveryStatus().equals(expectStatus)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status da entrega parcial incompatível com o status atual do pedido.");
-        }
+        EntregaParcial partialDelivery = new EntregaParcial();
+        partialDelivery.setDeliveryMan(deliveryMan);
+        partialDelivery.setOriginCenter(originCenter);
+        partialDelivery.setDestinationCenter(destinationCenter);
+        partialDelivery.setOrder(order);
+        partialDelivery.setPartialDeliveryStatus(verifyIfStatusIsValid(order.getStatus()));
+        partialDelivery.setDepartureDate(LocalDateTime.now());
 
-
-
-        EntregaParcial newPartialDelivery = new EntregaParcial();
-        newPartialDelivery.setOrder(order);
-        newPartialDelivery.setDeliveryMan(deliveryMan);
-        newPartialDelivery.setOriginCenter(originCenter);
-        newPartialDelivery.setDestinationCenter(destinationCenter);
-        newPartialDelivery.setPartialDeliveryStatus(criarEntregaParcialDTO.getPartialDeliveryStatus());
-        newPartialDelivery.setDepartureDate(criarEntregaParcialDTO.getDepartureDate());
-        newPartialDelivery.setArrivalDate(criarEntregaParcialDTO.getArrivalDate());
-
-        pedidoService.updateStatusByPartialDelivery(newPartialDelivery);
-        entregaParcialRepository.save(newPartialDelivery);
-
-        return newPartialDelivery;
-
+        entregaParcialRepository.save(partialDelivery);
     }
 
     private StatusEntregaParcial verifyIfStatusIsValid(PedidoStatus statusOrder) {

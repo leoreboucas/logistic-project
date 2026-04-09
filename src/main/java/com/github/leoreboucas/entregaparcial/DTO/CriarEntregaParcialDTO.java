@@ -18,14 +18,8 @@ public class CriarEntregaParcialDTO {
     @NotBlank
     @NotNull
     private String trackingCode;
-    @NotBlank
-    @NotNull
     private String cpfDeliveryMan;
-    @NotBlank
-    @NotNull
     private String originCenterName;
-    @NotBlank
-    @NotNull
     private String destinationCenterName;
     @NotNull
     private StatusEntregaParcial partialDeliveryStatus;

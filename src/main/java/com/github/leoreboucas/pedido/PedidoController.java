@@ -1,6 +1,7 @@
 package com.github.leoreboucas.pedido;
 
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
+import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
 import com.github.leoreboucas.pedido.DTO.PedidoResponseDTO;
 import jakarta.validation.Valid;
@@ -42,6 +43,34 @@ public class PedidoController {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
         Pedido order = pedidoService.cancelOrderBySupplier(trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
+    }
+
+    @PatchMapping("/{trackingCode}/confirmar-postagem")
+    public PedidoResponseDTO confirmPostByEnterpriseController(@PathVariable String trackingCode) {
+        String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = pedidoService.confirmPostByEnterprise(trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
+    }
+
+    @PatchMapping("/{trackingCode}/confirmar-triagem")
+    public PedidoResponseDTO confirmScreeningByEnterpriseController(@PathVariable String trackingCode) {
+        String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = pedidoService.confirmScreeningByEnterpise(trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
+    }
+
+    @PatchMapping("/{trackingCode}/confirmar-envio")
+    @ResponseBody
+    public PedidoResponseDTO confirmShippingByEnterpriseController(@RequestBody @Valid EnviarPedidoDTO enviarPedidoDTO, @PathVariable String trackingCode) {
+        String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = pedidoService.confirmShippingByEnterprise(enviarPedidoDTO, trackingCode, cnpj);
 
         return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }

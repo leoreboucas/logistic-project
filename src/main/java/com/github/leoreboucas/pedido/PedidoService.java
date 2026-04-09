@@ -2,15 +2,20 @@ package com.github.leoreboucas.pedido;
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
+import com.github.leoreboucas.empresa.Empresa;
+import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregaparcial.EntregaParcial;
+import com.github.leoreboucas.entregaparcial.EntregaParcialService;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.historicopedido.HistoricoPedido;
 import com.github.leoreboucas.historicopedido.HistoricoPedidoRepository;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
+import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
 import com.github.leoreboucas.rastreamento.DTO.HistoricoItemDTO;
 import com.github.leoreboucas.rastreamento.DTO.RastreamentoResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,12 +35,16 @@ public class PedidoService {
     private final FornecedorRepository fornecedorRepository;
     private final ClienteRepository clienteRepository;
     private final HistoricoPedidoRepository historicoPedidoRepository;
+    private final EmpresaRepository empresaRepository;
+    private final EntregaParcialService entregaParcialService;
 
-    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, HistoricoPedidoRepository historicoPedidoRepository) {
+    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, HistoricoPedidoRepository historicoPedidoRepository, FornecedorRepository fornecedorRepository1, HistoricoPedidoRepository historicoPedidoRepository1, EmpresaRepository empresaRepository, EntregaParcialService entregaParcialService) {
         this.pedidoRepository = pedidoRepository;
-        this.fornecedorRepository = fornecedorRepository;
         this.clienteRepository = clienteRepository;
+        this.fornecedorRepository = fornecedorRepository;
         this.historicoPedidoRepository = historicoPedidoRepository;
+        this.empresaRepository = empresaRepository;
+        this.entregaParcialService = entregaParcialService;
     }
 
 
@@ -112,6 +121,82 @@ public class PedidoService {
         historicoPedidoRepository.save(orderHistory);
 
         return newOrder;
+    }
+
+    public Pedido confirmPostByEnterprise (String trackingCode, String cnpj) {
+        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, AGUARDANDO_POSTAGEM);
+
+        order.setStatus(PedidoStatus.POSTADO);
+
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setOrder(order);
+        orderHistory.setPreviousStatus(PedidoStatus.AGUARDANDO_POSTAGEM);
+        orderHistory.setNewStatus(PedidoStatus.POSTADO);
+        orderHistory.setObservation("Postagem do pedido confirmada.");
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
+        pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+
+        return order;
+    }
+
+    public Pedido confirmScreeningByEnterpise (String trackingCode, String cnpj) {
+        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, POSTADO);
+
+        order.setStatus(EM_TRIAGEM);
+
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setOrder(order);
+        orderHistory.setPreviousStatus(POSTADO);
+        orderHistory.setNewStatus(EM_TRIAGEM);
+        orderHistory.setObservation("Triagem do pedido confirmada.");
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
+        pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+
+        return order;
+    }
+
+    @Transactional
+    public Pedido confirmShippingByEnterprise (EnviarPedidoDTO enviarPedidoDTO, String trackingCode, String cnpj) {
+        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, EM_TRIAGEM);
+
+        order.setStatus(EM_TRANSITO);
+
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setOrder(order);
+        orderHistory.setPreviousStatus(EM_TRIAGEM);
+        orderHistory.setNewStatus(EM_TRANSITO);
+        orderHistory.setObservation("Pedido enviado para centro de distribuição: " + enviarPedidoDTO.getDestinationCenter());
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
+        pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+        entregaParcialService.registerPartialDeliveryByEnterprise(enviarPedidoDTO, order, cnpj);
+
+        return order;
+    }
+
+    private Pedido validationOnChangeStatusByEnterprise (String cnpj, String trackingCode, PedidoStatus actualStatus) {
+        Empresa enterprise = empresaRepository.findByCnpj(cnpj);
+
+        if(enterprise == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
+        }
+
+        Pedido order = pedidoRepository.findByTrackingCode(trackingCode);
+
+        if(order == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
+        }
+
+        if(order.getStatus() != actualStatus) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        }
+
+        return order;
     }
 
     public List<ListarPedidosDTO> getAllOrdersByCnpj (String cnpj) {

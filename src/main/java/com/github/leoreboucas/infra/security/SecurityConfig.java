@@ -35,6 +35,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/centro-distribuicoes").hasAuthority("enterprise")
                         .requestMatchers(HttpMethod.POST, "/entregas-parciais").hasAuthority("enterprise")
                         .requestMatchers(HttpMethod.POST, "/pedidos").hasAuthority("supplier")
+                        .requestMatchers(HttpMethod.PATCH, "/pedidos/*/cancelar").hasAuthority("supplier")
+                        .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-postagem").hasAuthority("enterprise")
+                        .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-triagem").hasAuthority("enterprise")
+                        .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-envio").hasAuthority("enterprise")
                         .anyRequest().authenticated()
                 )
                 .build();
