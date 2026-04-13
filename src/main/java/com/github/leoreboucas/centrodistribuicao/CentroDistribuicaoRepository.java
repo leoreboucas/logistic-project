@@ -7,4 +7,5 @@ import java.util.List;
 public interface CentroDistribuicaoRepository extends JpaRepository<CentroDistribuicao, Long> {
     List<CentroDistribuicao> findByEnterpriseCnpj(String cnpj);
     CentroDistribuicao findByNameAndEnterpriseCnpj(String name, String cnpj);
+    CentroDistribuicao findByName(String name);
 }

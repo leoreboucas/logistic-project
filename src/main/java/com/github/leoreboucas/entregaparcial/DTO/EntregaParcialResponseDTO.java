@@ -1,6 +1,5 @@
 package com.github.leoreboucas.entregaparcial.DTO;
 
-import com.github.leoreboucas.entregaparcial.StatusEntregaParcial;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

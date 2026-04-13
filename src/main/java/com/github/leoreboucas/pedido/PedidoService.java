@@ -1,15 +1,20 @@
 package com.github.leoreboucas.pedido;
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
+import com.github.leoreboucas.centrodistribuicao.CentroDistribuicaoRepository;
 import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.empresa.Empresa;
 import com.github.leoreboucas.empresa.EmpresaRepository;
+import com.github.leoreboucas.entregador.Entregador;
+import com.github.leoreboucas.entregador.EntregadorRepository;
 import com.github.leoreboucas.entregaparcial.EntregaParcial;
+import com.github.leoreboucas.entregaparcial.EntregaParcialRepository;
 import com.github.leoreboucas.entregaparcial.EntregaParcialService;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.historicopedido.HistoricoPedido;
 import com.github.leoreboucas.historicopedido.HistoricoPedidoRepository;
+import com.github.leoreboucas.pedido.DTO.ConfirmarChegadaDTO;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
 import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
@@ -37,14 +42,18 @@ public class PedidoService {
     private final HistoricoPedidoRepository historicoPedidoRepository;
     private final EmpresaRepository empresaRepository;
     private final EntregaParcialService entregaParcialService;
+    private final EntregaParcialRepository entregaParcialRepository;
+    private final EntregadorRepository entregadorRepository;
 
-    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, HistoricoPedidoRepository historicoPedidoRepository, FornecedorRepository fornecedorRepository1, HistoricoPedidoRepository historicoPedidoRepository1, EmpresaRepository empresaRepository, EntregaParcialService entregaParcialService) {
+    public PedidoService (PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, HistoricoPedidoRepository historicoPedidoRepository, EmpresaRepository empresaRepository, EntregaParcialService entregaParcialService, EntregaParcialRepository entregaParcialRepository, EntregadorRepository entregadorRepository) {
         this.pedidoRepository = pedidoRepository;
         this.clienteRepository = clienteRepository;
         this.fornecedorRepository = fornecedorRepository;
         this.historicoPedidoRepository = historicoPedidoRepository;
         this.empresaRepository = empresaRepository;
         this.entregaParcialService = entregaParcialService;
+        this.entregaParcialRepository = entregaParcialRepository;
+        this.entregadorRepository = entregadorRepository;
     }
 
 
@@ -124,7 +133,7 @@ public class PedidoService {
     }
 
     public Pedido confirmPostByEnterprise (String trackingCode, String cnpj) {
-        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, AGUARDANDO_POSTAGEM);
+        Pedido order = validationOnChangeStatus(cnpj, trackingCode, AGUARDANDO_POSTAGEM);
 
         order.setStatus(PedidoStatus.POSTADO);
 
@@ -142,7 +151,7 @@ public class PedidoService {
     }
 
     public Pedido confirmScreeningByEnterpise (String trackingCode, String cnpj) {
-        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, POSTADO);
+        Pedido order = validationOnChangeStatus(cnpj, trackingCode, POSTADO);
 
         order.setStatus(EM_TRIAGEM);
 
@@ -161,7 +170,7 @@ public class PedidoService {
 
     @Transactional
     public Pedido confirmShippingByEnterprise (EnviarPedidoDTO enviarPedidoDTO, String trackingCode, String cnpj) {
-        Pedido order = validationOnChangeStatusByEnterprise(cnpj, trackingCode, EM_TRIAGEM);
+        Pedido order = validationOnChangeStatus(cnpj, trackingCode, EM_TRIAGEM);
 
         order.setStatus(EM_TRANSITO);
 
@@ -179,7 +188,57 @@ public class PedidoService {
         return order;
     }
 
-    private Pedido validationOnChangeStatusByEnterprise (String cnpj, String trackingCode, PedidoStatus actualStatus) {
+    public Pedido confirmDriverArrivalByDeliveryMan (ConfirmarChegadaDTO confirmarChegadaDTO, String trackingCode, String cpf) {
+        Entregador deliveryMan = entregadorRepository.findByCpf(cpf);
+
+        if (deliveryMan == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado! Verifique o CPF informado e tente novamente.");
+        }
+
+        EntregaParcial partialDelivery = entregaParcialRepository.findByOrderTrackingCode(trackingCode).stream()
+                .filter(delivery -> delivery.getDeliveryMan().getCpf().equals(cpf) && delivery.getDestinationCenter().getName().equals(confirmarChegadaDTO.getDestinationCenter()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrega parcial correspondente não encontrada para este entregador e centro de distribuição de destino. Verifique as informações e tente novamente."));
+
+
+        CentroDistribuicao destinationCenter = partialDelivery.getDestinationCenter();
+
+        if (destinationCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Destino não encontrado! Verifique o nome informado e tente novamente.");
+        }
+        CentroDistribuicao originCenter = partialDelivery.getOriginCenter();
+
+        if (originCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Origem não encontrado! Verifique o nome informado e tente novamente.");
+        }
+
+        Pedido order = validationOnChangeStatus(destinationCenter.getEnterprise().getCnpj(), trackingCode, EM_TRANSITO);
+
+        switch (destinationCenter.getCenterDistribuitionType()) {
+            case TRANSACIONAL -> order.setStatus(EM_TRANSITO);
+            case ULTIMA_MILHA -> order.setStatus(EM_DISTRIBUICAO);
+        }
+
+        HistoricoPedido orderHistory = new HistoricoPedido();
+        orderHistory.setOrder(order);
+        orderHistory.setPreviousStatus(EM_TRANSITO);
+        orderHistory.setNewStatus(order.getStatus());
+        orderHistory.setObservation("Pedido chegou no centro de distribuição: " + confirmarChegadaDTO.getDestinationCenter());
+        orderHistory.setDateOfChange(LocalDateTime.now());
+
+        pedidoRepository.save(order);
+        historicoPedidoRepository.save(orderHistory);
+
+        EnviarPedidoDTO enviarPedidoDTO = new EnviarPedidoDTO();
+        enviarPedidoDTO.setDeliveryManCpf(cpf);
+        enviarPedidoDTO.setOriginCenter(originCenter.getName());
+        enviarPedidoDTO.setDestinationCenter(destinationCenter.getName());
+        entregaParcialService.registerPartialDeliveryByEnterprise(enviarPedidoDTO, order, destinationCenter.getEnterprise().getCnpj());
+
+        return order;
+    }
+
+    private Pedido validationOnChangeStatus (String cnpj, String trackingCode, PedidoStatus actualStatus) {
         Empresa enterprise = empresaRepository.findByCnpj(cnpj);
 
         if(enterprise == null) {

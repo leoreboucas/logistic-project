@@ -1,9 +1,6 @@
 package com.github.leoreboucas.pedido;
 
-import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
-import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
-import com.github.leoreboucas.pedido.DTO.ListarPedidosDTO;
-import com.github.leoreboucas.pedido.DTO.PedidoResponseDTO;
+import com.github.leoreboucas.pedido.DTO.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,6 +68,16 @@ public class PedidoController {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
         Pedido order = pedidoService.confirmShippingByEnterprise(enviarPedidoDTO, trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
+    }
+
+    @PatchMapping("/{trackingCode}/confirmar-chegada")
+    @ResponseBody
+    public PedidoResponseDTO confirmDriverArrivalByDeliveryMan(@RequestBody @Valid ConfirmarChegadaDTO confirmarChegadaDTO, @PathVariable String trackingCode) {
+        String cpf = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = pedidoService.confirmDriverArrivalByDeliveryMan(confirmarChegadaDTO, trackingCode, cpf);
 
         return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }

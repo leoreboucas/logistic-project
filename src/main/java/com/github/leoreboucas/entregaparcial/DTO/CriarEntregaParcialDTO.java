@@ -25,6 +25,4 @@ public class CriarEntregaParcialDTO {
     private StatusEntregaParcial partialDeliveryStatus;
     @NotNull
     private LocalDateTime departureDate;
-    @NotNull
-    private LocalDateTime arrivalDate;
 }

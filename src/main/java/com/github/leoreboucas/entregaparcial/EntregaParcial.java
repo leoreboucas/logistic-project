@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,8 +39,6 @@ public class EntregaParcial {
     @Column(name = "departure_date")
     private LocalDateTime departureDate;
     @Column(name = "arrival_date")
-    private LocalDateTime arrivalDate;
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "deleted_date")
     private LocalDateTime deletedAt;

@@ -1,6 +1,5 @@
 package com.github.leoreboucas.centrodistribuicao.DTO;
 
-import com.github.leoreboucas.centrodistribuicao.TipoCentroDistribuicao;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
