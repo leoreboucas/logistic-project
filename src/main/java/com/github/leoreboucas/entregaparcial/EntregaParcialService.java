@@ -2,13 +2,10 @@ package com.github.leoreboucas.entregaparcial;
 
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicaoRepository;
-import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.entregador.EntregadorRepository;
-import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.Pedido;
-import com.github.leoreboucas.pedido.PedidoRepository;
 import com.github.leoreboucas.pedido.PedidoStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

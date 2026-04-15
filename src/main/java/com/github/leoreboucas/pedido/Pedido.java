@@ -20,9 +20,18 @@ public class Pedido {
     @ManyToOne
     @JoinColumn(name = "id_supplier")
     private Fornecedor fornecedor;
-    @ManyToOne
-    @JoinColumn(name = "id_costumer")
-    private Cliente cliente;
+    @Column(name = "customer_complete_name")
+    private String customerCompleteName;
+    @Column(name = "cell_number")
+    private String cellNumber;
+    private String cep;
+    private String street;
+    @Column(name = "house_number")
+    private String houseNumber;
+    private String complement;
+    private String neighborhood;
+    private String city;
+    private String state;
     @Column(name = "tracking_code")
     private String trackingCode;
     @Enumerated(EnumType.STRING)

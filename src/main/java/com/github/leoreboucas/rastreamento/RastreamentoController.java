@@ -1,6 +1,6 @@
 package com.github.leoreboucas.rastreamento;
 
-import com.github.leoreboucas.pedido.PedidoService;
+import com.github.leoreboucas.pedido.services.PedidoService;
 import com.github.leoreboucas.rastreamento.DTO.RastreamentoResponseDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

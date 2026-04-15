@@ -38,7 +38,7 @@ public class EntregaParcial {
     private StatusEntregaParcial partialDeliveryStatus;
     @Column(name = "departure_date")
     private LocalDateTime departureDate;
-    @Column(name = "arrival_date")
+    @Column(name = "created_date")
     private LocalDateTime createdAt;
     @Column(name = "deleted_date")
     private LocalDateTime deletedAt;

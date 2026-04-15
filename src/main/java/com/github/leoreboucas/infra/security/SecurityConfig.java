@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-postagem").hasAuthority("enterprise")
                         .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-triagem").hasAuthority("enterprise")
                         .requestMatchers(HttpMethod.PATCH, "/pedidos/*/confirmar-envio").hasAuthority("enterprise")
+                        .requestMatchers(HttpMethod.PATCH, "/pedidos/*/saiu-para-entrega").hasAuthority("enterprise")
                         .anyRequest().authenticated()
                 )
                 .build();
