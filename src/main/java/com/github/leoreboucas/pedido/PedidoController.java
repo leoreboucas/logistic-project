@@ -1,10 +1,11 @@
 package com.github.leoreboucas.pedido;
 
+import com.github.leoreboucas.entregaparcial.DTO.ListarEntregasParciaisDTO;
+import com.github.leoreboucas.entregaparcial.EntregaParcial;
+import com.github.leoreboucas.entregaparcial.EntregaParcialService;
 import com.github.leoreboucas.pedido.DTO.*;
 import com.github.leoreboucas.pedido.services.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +20,14 @@ public class PedidoController {
     private final FornecedorPedidoService fornecedorPedidoService;
     private final EmpresaPedidoService empresaPedidoService;
     private final EntregadorPedidoService entregadorPedidoService;
+    private final EntregaParcialService entregaParcialService;
 
-    public PedidoController(PedidoService pedidoService, FornecedorPedidoService fornecedorPedidoService, EmpresaPedidoService empresaPedidoService, EntregadorPedidoService entregadorPedidoService) {
+    public PedidoController(PedidoService pedidoService, FornecedorPedidoService fornecedorPedidoService, EmpresaPedidoService empresaPedidoService, EntregadorPedidoService entregadorPedidoService, EntregaParcialService entregaParcialService) {
         this.pedidoService = pedidoService;
         this.fornecedorPedidoService = fornecedorPedidoService;
         this.empresaPedidoService = empresaPedidoService;
         this.entregadorPedidoService = entregadorPedidoService;
+        this.entregaParcialService = entregaParcialService;
     }
 
     @PostMapping
@@ -42,6 +45,15 @@ public class PedidoController {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
         return pedidoService.getAllOrdersByCnpj(cnpj);
+    }
+
+    @GetMapping
+    public List<ListarEntregasParciaisDTO> getAllPartialDeliveriesByDeliveryManController() {
+        String cpf = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        List<EntregaParcial> allPartialDelivery = entregaParcialService.getPartialDeliveriesByDeliveryMan(cpf);
+
+        return ListarEntregasParciaisDTO.toList(allPartialDelivery);
     }
 
     @PatchMapping("/{trackingCode}/cancelar")
