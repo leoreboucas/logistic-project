@@ -1,5 +1,0 @@
-package com.github.leoreboucas.entregaparcial;
-
-public enum StatusEntregaParcial {
-    AGUARDANDO_POSTAGEM, POSTADO, EM_TRIAGEM, EM_TRANSITO, EM_DISTRIBUICAO, SAIU_PARA_ENTREGA, TENTATIVA_ENTREGA, ENTREGUE, CANCELADO, DEVOLVIDO
-}

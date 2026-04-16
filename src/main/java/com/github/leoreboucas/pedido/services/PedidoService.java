@@ -69,7 +69,7 @@ public class PedidoService {
         return trackingCodePartial;
     }
 
-    public Pedido validationOnChangeStatus (String cnpj, String trackingCode, PedidoStatus actualStatus) {
+    public Pedido validationOnChangeStatus (String cnpj, String trackingCode) {
         Empresa enterprise = empresaRepository.findByCnpj(cnpj);
 
         if(enterprise == null) {
@@ -82,9 +82,6 @@ public class PedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
         }
 
-        if(order.getStatus() != actualStatus) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
-        }
 
         return order;
     }
@@ -97,7 +94,7 @@ public class PedidoService {
                         order.getTrackingCode(),
                         order.getStatus().toString(),
                         order.getForecastDelivery(),
-                        order.getCliente().getFirstName() + " " + order.getCliente().getSecondName()
+                        order.getCustomerCompleteName()
                 ))
                 .collect(Collectors.toList());
     }

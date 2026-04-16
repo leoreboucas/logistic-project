@@ -1,9 +1,8 @@
-package com.github.leoreboucas.entregaparcial;
+package com.github.leoreboucas.entregafinal;
 
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.pedido.Pedido;
-import com.github.leoreboucas.pedido.PedidoStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,36 +12,32 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "partial_delivery")
+@Table(name = "final_delivery")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntregaParcial {
+public class EntregaFinal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @ManyToOne
-    @JoinColumn(name = "id_order")
+    @JoinColumn(name = "order_id")
     private Pedido order;
     @ManyToOne
-    @JoinColumn(name = "id_delivery_man")
+    @JoinColumn(name = "delivery_man_id")
     private Entregador deliveryMan;
     @ManyToOne
-    @JoinColumn(name = "id_origin_center")
+    @JoinColumn(name = "origin_center_id")
     private CentroDistribuicao originCenter;
-    @ManyToOne
-    @JoinColumn(name = "id_destination_center")
-    private CentroDistribuicao destinationCenter;
     @Column(name = "departure_date")
     private LocalDateTime departureDate;
-    @Column(name = "created_date")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-    @Column(name = "deleted_date")
-    private LocalDateTime deletedAt;
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
 }

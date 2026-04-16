@@ -1,13 +1,23 @@
 package com.github.leoreboucas.pedido.services;
 
+import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
+import com.github.leoreboucas.centrodistribuicao.CentroDistribuicaoRepository;
+import com.github.leoreboucas.centrodistribuicao.TipoCentroDistribuicao;
+import com.github.leoreboucas.empresa.Empresa;
+import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.entregador.EntregadorRepository;
+import com.github.leoreboucas.entregafinal.DTO.CriarPedidoFinalDTO;
+import com.github.leoreboucas.entregafinal.EntregaFinalService;
+import com.github.leoreboucas.entregaparcial.DTO.CriarEntregaParcialDTO;
 import com.github.leoreboucas.entregaparcial.EntregaParcialService;
 import com.github.leoreboucas.historicopedido.HistoricoPedidoService;
+import com.github.leoreboucas.pedido.DTO.EnviarEntregaFinalDTO;
 import com.github.leoreboucas.pedido.DTO.EnviarPedidoDTO;
 import com.github.leoreboucas.pedido.Pedido;
 import com.github.leoreboucas.pedido.PedidoRepository;
 import com.github.leoreboucas.pedido.PedidoStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,19 +34,29 @@ public class EmpresaPedidoService {
     private final PedidoRepository pedidoRepository;
     private final HistoricoPedidoService historicoPedidoService;
     private final EntregaParcialService entregaParcialService;
+    private final EntregaFinalService entregaFinalService;
     private final EntregadorRepository entregadorRepository;
+    private final CentroDistribuicaoRepository centroDistribuicaoRepository;
+    @Value("${delivery.max-attempts}")
+    private int maxAttempts;
 
 
-    public EmpresaPedidoService(PedidoService pedidoService, PedidoRepository pedidoRepository, HistoricoPedidoService historicoPedidoService, EntregaParcialService entregaParcialService, EntregadorRepository entregadorRepository) {
+    public EmpresaPedidoService(PedidoService pedidoService, PedidoRepository pedidoRepository, HistoricoPedidoService historicoPedidoService, EntregaParcialService entregaParcialService, EntregaFinalService entregaFinalService, EntregadorRepository entregadorRepository, CentroDistribuicaoRepository centroDistribuicaoRepository) {
         this.pedidoService = pedidoService;
         this.pedidoRepository = pedidoRepository;
         this.historicoPedidoService = historicoPedidoService;
         this.entregaParcialService = entregaParcialService;
+        this.entregaFinalService = entregaFinalService;
         this.entregadorRepository = entregadorRepository;
+        this.centroDistribuicaoRepository = centroDistribuicaoRepository;
     }
 
     public Pedido confirmPostByEnterprise (String trackingCode, String cnpj) {
-        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode, AGUARDANDO_POSTAGEM);
+        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode);
+
+        if(order.getStatus() != AGUARDANDO_POSTAGEM) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        }
 
         order.setStatus(PedidoStatus.POSTADO);
 
@@ -47,7 +67,11 @@ public class EmpresaPedidoService {
     }
 
     public Pedido confirmScreeningByEnterpise (String trackingCode, String cnpj) {
-        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode, POSTADO);
+        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode);
+
+        if(order.getStatus() != POSTADO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        }
 
         order.setStatus(EM_TRIAGEM);
 
@@ -59,32 +83,78 @@ public class EmpresaPedidoService {
 
     @Transactional
     public Pedido confirmShippingByEnterprise (EnviarPedidoDTO enviarPedidoDTO, String trackingCode, String cnpj) {
-        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode, PedidoStatus.valueOf(enviarPedidoDTO.getActualStatus()));
-//
-        if(order.getStatus().equals(EM_TRIAGEM)) {
-            order.setStatus(EM_TRANSITO);
-        } else if (order.getStatus().equals(EM_TRANSITO)) {
-            order.setStatus(EM_DISTRIBUICAO);
-        } else {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode);
+
+        PedidoStatus previousStatus = order.getStatus();
+
+        CentroDistribuicao originCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(enviarPedidoDTO.getOriginCenter(), cnpj);
+
+        if (originCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Origem não encontrado! Verifique o nome informado e tente novamente.");
+        }
+
+        CentroDistribuicao destinationCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(enviarPedidoDTO.getDestinationCenter(), cnpj);
+
+        if(destinationCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Destino não encontrado! Verifique o nome informado e tente novamente.");
+        }
+
+        switch (order.getStatus()) {
+            case EM_TRIAGEM -> order.setStatus(EM_TRANSITO);
+            case EM_TRANSITO -> {
+                if (destinationCenter.getCenterDistribuitionType().equals(TipoCentroDistribuicao.TRANSACIONAL)) {
+                    order.setStatus(EM_TRANSITO);
+                } else {
+                    order.setStatus(EM_DISTRIBUICAO);
+                }
+            }
+            default -> throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        }
+
+        Entregador deliveryMan = entregadorRepository.findByCpf(enviarPedidoDTO.getDeliveryManCpf());
+
+        if (deliveryMan == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado! Verifique o CPF informado e tente novamente.");
         }
 
         pedidoRepository.save(order);
-        historicoPedidoService.registerOrderHistory(order, PedidoStatus.valueOf(enviarPedidoDTO.getActualStatus()), order.getStatus(), "Pedido enviado para centro de distribuição: " + enviarPedidoDTO.getDestinationCenter());
-        entregaParcialService.registerPartialDeliveryByEnterprise(enviarPedidoDTO, order, cnpj);
+
+        historicoPedidoService.registerOrderHistory(order, previousStatus, order.getStatus(), "Pedido enviado para centro de distribuição: " + enviarPedidoDTO.getDestinationCenter());
+        entregaParcialService.registerPartialDeliveryByEnterprise(new CriarEntregaParcialDTO(order, deliveryMan, originCenter, destinationCenter));
 
         return order;
     }
 
-    public Pedido outForDeliveryByEnterprise(EnviarPedidoDTO enviarPedidoDTO, String trackingCode, String cnpj) {
-        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode, EM_DISTRIBUICAO);
+    public Pedido outForDeliveryByEnterprise(EnviarEntregaFinalDTO enviarEntregaFinalDTO, String trackingCode, String cnpj) {
+        Pedido order = pedidoService.validationOnChangeStatus(cnpj, trackingCode);
+
+        if(order.getStatus() != EM_DISTRIBUICAO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        }
 
         order.setStatus(SAIU_PARA_ENTREGA);
-        Entregador deliveryMan = entregadorRepository.findByCpf(enviarPedidoDTO.getDeliveryManCpf());
+        Entregador deliveryMan = entregadorRepository.findByEnterpriseCnpjAndCpf(cnpj, enviarEntregaFinalDTO.deliveryManCpf());
+
+        if(deliveryMan == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado! Verifique o CPF informado e tente novamente.");
+        }
+
+        CentroDistribuicao originCenter = centroDistribuicaoRepository.findByNameAndEnterpriseCnpj(enviarEntregaFinalDTO.originCenter(), cnpj);
+
+        if(originCenter == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Origem não encontrado! Verifique o nome informado e tente novamente.");
+        }
+
+        if(order.getDeliveryAttempts() == maxAttempts) {
+            order.setStatus(DEVOLVIDO);
+            historicoPedidoService.registerOrderHistory(order, EM_DISTRIBUICAO, DEVOLVIDO, "Número máximo de tentativas de entrega atingido. Pedido devolvido para o remetente.");
+            pedidoRepository.save(order);
+            return order;
+        }
 
         pedidoRepository.save(order);
         historicoPedidoService.registerOrderHistory(order, EM_DISTRIBUICAO, SAIU_PARA_ENTREGA, "Pedido saiu para entrega. Entregador: " + deliveryMan.getFirstName() + " " + deliveryMan.getSecondName());
-        entregaParcialService.registerPartialDeliveryByEnterprise(enviarPedidoDTO, order, cnpj);
+        entregaFinalService.registerFinalDeliveryByEnterprise(new CriarPedidoFinalDTO(order, deliveryMan, originCenter));
 
         return order;
     }

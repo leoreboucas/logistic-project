@@ -36,6 +36,8 @@ public class Pedido {
     private String trackingCode;
     @Enumerated(EnumType.STRING)
     private PedidoStatus status;
+    @Column(name = "delivery_attempts")
+    private int deliveryAttempts = 0;
     private double weight;
     private double length;
     private double width;

@@ -12,9 +12,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CriarPedidoDTO {
-    @NotNull
     @NotBlank
-    private String cpfCliente;
+    private String customerCompleteName;
+    @NotBlank
+    private String cellNumber;
+    @NotBlank
+    private String cep;
+    @NotBlank
+    private String street;
+    @NotBlank
+    private String houseNumber;
+    private String complement;
+    @NotBlank
+    private String neighborhood;
+    @NotBlank
+    private String city;
+    @NotBlank
+    private String state;
     @NotNull
     private double weight;
     @NotNull

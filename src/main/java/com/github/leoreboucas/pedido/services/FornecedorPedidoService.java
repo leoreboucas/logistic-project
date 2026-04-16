@@ -43,17 +43,19 @@ public class FornecedorPedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado.");
         }
 
-        Cliente costumer = clienteRepository.findByCpf(criarPedidoDTO.getCpfCliente());
-
-        if(costumer == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado.");
-        }
-
         String trackingCode = pedidoService.generateTrackingCode();
 
         Pedido newOrder = new Pedido();
         newOrder.setFornecedor(supplier);
-        newOrder.setCliente(costumer);
+        newOrder.setCellNumber(criarPedidoDTO.getCellNumber());
+        newOrder.setCustomerCompleteName(criarPedidoDTO.getCustomerCompleteName());
+        newOrder.setCep(criarPedidoDTO.getCep());
+        newOrder.setHouseNumber(criarPedidoDTO.getHouseNumber());
+        newOrder.setStreet(criarPedidoDTO.getStreet());
+        newOrder.setNeighborhood(criarPedidoDTO.getNeighborhood());
+        newOrder.setComplement(criarPedidoDTO.getComplement());
+        newOrder.setCity(criarPedidoDTO.getCity());
+        newOrder.setState(criarPedidoDTO.getState());
         newOrder.setTrackingCode(trackingCode);
         newOrder.setStatus(PedidoStatus.AGUARDANDO_POSTAGEM);
         newOrder.setWeight(criarPedidoDTO.getWeight());

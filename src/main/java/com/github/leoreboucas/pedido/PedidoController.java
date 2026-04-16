@@ -1,11 +1,10 @@
 package com.github.leoreboucas.pedido;
 
 import com.github.leoreboucas.pedido.DTO.*;
-import com.github.leoreboucas.pedido.services.EmpresaPedidoService;
-import com.github.leoreboucas.pedido.services.EntregadorPedidoService;
-import com.github.leoreboucas.pedido.services.FornecedorPedidoService;
-import com.github.leoreboucas.pedido.services.PedidoService;
+import com.github.leoreboucas.pedido.services.*;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -83,21 +82,29 @@ public class PedidoController {
     }
 
     @PatchMapping("/{trackingCode}/confirmar-chegada")
-    @ResponseBody
-    public PedidoResponseDTO confirmDriverArrivalByDeliveryMan(@RequestBody @Valid ConfirmarChegadaDTO confirmarChegadaDTO, @PathVariable String trackingCode) {
+    public PedidoResponseDTO confirmDriverArrivalByDeliveryMan(@PathVariable String trackingCode) {
         String cpf = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-        Pedido order = entregadorPedidoService.confirmDriverArrivalByDeliveryMan(confirmarChegadaDTO, trackingCode, cpf);
+        Pedido order = entregadorPedidoService.confirmDriverArrivalByDeliveryMan(trackingCode, cpf);
 
         return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }
 
     @PatchMapping("/{trackingCode}/saiu-para-entrega")
     @ResponseBody
-    public PedidoResponseDTO outForDeliveryByEnterprise(@RequestBody @Valid EnviarPedidoDTO enviarPedidoDTO, @PathVariable String trackingCode) {
+    public PedidoResponseDTO outForDeliveryByEnterprise(@RequestBody @Valid EnviarEntregaFinalDTO enviarEntregaFinalDTO, @PathVariable String trackingCode) {
         String cnpj = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 
-        Pedido order = empresaPedidoService.outForDeliveryByEnterprise(enviarPedidoDTO, trackingCode, cnpj);
+        Pedido order = empresaPedidoService.outForDeliveryByEnterprise(enviarEntregaFinalDTO, trackingCode, cnpj);
+
+        return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
+    }
+
+    @PatchMapping("/{trackingCode}/tentativa-entrega")
+    public PedidoResponseDTO registerAttemptByDeliveryMan (@RequestBody @Valid TentativaEntregaDTO tentativaEntregaDTO, @PathVariable String trackingCode) {
+        String cpf = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+
+        Pedido order = entregadorPedidoService.registerAttemptByDeliveryMan(tentativaEntregaDTO.status(), trackingCode, cpf);
 
         return new PedidoResponseDTO(order.getStatus().toString(), order.getTrackingCode());
     }
