@@ -99,17 +99,11 @@ public class EmpresaPedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Destino não encontrado! Verifique o nome informado e tente novamente.");
         }
 
-        switch (order.getStatus()) {
-            case EM_TRIAGEM -> order.setStatus(EM_TRANSITO);
-            case EM_TRANSITO -> {
-                if (destinationCenter.getCenterDistribuitionType().equals(TipoCentroDistribuicao.TRANSACIONAL)) {
-                    order.setStatus(EM_TRANSITO);
-                } else {
-                    order.setStatus(EM_DISTRIBUICAO);
-                }
-            }
-            default -> throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
+        if(order.getStatus() != EM_TRIAGEM && order.getStatus() != EM_TRANSITO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pedido não pode ser confirmado no status atual.");
         }
+
+        order.setStatus(EM_TRANSITO);
 
         Entregador deliveryMan = entregadorRepository.findByCpf(enviarPedidoDTO.getDeliveryManCpf());
 

@@ -42,7 +42,7 @@ public class EntregadorPedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entregador não encontrado! Verifique o CPF informado e tente novamente.");
         }
 
-        EntregaParcial partialDelivery = entregaParcialRepository.findByOrderTrackingCodeAndDeliveryMan(trackingCode, deliveryMan);
+        EntregaParcial partialDelivery = entregaParcialRepository.findLatestByOrderTrackingCodeAndDeliveryMan(trackingCode, deliveryMan);
 
         if(partialDelivery == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrega parcial não encontrada para o código de rastreamento e entregador informados! Verifique as informações e tente novamente.");
@@ -56,7 +56,7 @@ public class EntregadorPedidoService {
         }
 
         pedidoRepository.save(order);
-        historicoPedidoService.registerOrderHistory(order, EM_TRANSITO, order.getStatus(), "Pedido chegou no centro de distribuição: " + partialDelivery.getDestinationCenter());
+        historicoPedidoService.registerOrderHistory(order, EM_TRANSITO, order.getStatus(), "Pedido chegou no centro de distribuição: " + partialDelivery.getDestinationCenter().getName());
 
         return order;
     }
