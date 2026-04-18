@@ -1,10 +1,8 @@
 package com.github.leoreboucas.pedido.services;
 
-import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
-import com.github.leoreboucas.historicopedido.HistoricoPedido;
 import com.github.leoreboucas.historicopedido.HistoricoPedidoService;
 import com.github.leoreboucas.pedido.DTO.CriarPedidoDTO;
 import com.github.leoreboucas.pedido.Pedido;
@@ -14,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.github.leoreboucas.pedido.PedidoStatus.EM_TRIAGEM;
@@ -22,14 +19,12 @@ import static com.github.leoreboucas.pedido.PedidoStatus.EM_TRIAGEM;
 @Service
 public class FornecedorPedidoService {
     private final FornecedorRepository fornecedorRepository;
-    private final ClienteRepository clienteRepository;
     private final PedidoRepository pedidoRepository;
     private final HistoricoPedidoService historicoPedidoService;
     private final PedidoService pedidoService;
 
-    public FornecedorPedidoService(FornecedorRepository fornecedorRepository, ClienteRepository clienteRepository, PedidoRepository pedidoRepository, HistoricoPedidoService historicoPedidoService, PedidoService pedidoService) {
+    public FornecedorPedidoService(FornecedorRepository fornecedorRepository, PedidoRepository pedidoRepository, HistoricoPedidoService historicoPedidoService, PedidoService pedidoService) {
         this.fornecedorRepository = fornecedorRepository;
-        this.clienteRepository = clienteRepository;
         this.pedidoRepository = pedidoRepository;
         this.historicoPedidoService = historicoPedidoService;
         this.pedidoService = pedidoService;

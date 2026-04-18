@@ -43,4 +43,14 @@ public class JwtService {
                 .get("role", String.class);
     }
 
+    public boolean isTokenValid(String token) {
+        return Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration()
+                .after(new Date());
+    }
+
 }

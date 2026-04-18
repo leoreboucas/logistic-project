@@ -82,6 +82,10 @@ public class PedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
         }
 
+        if(order.getStatus().equals(PedidoStatus.ENTREGUE) || order.getStatus().equals(PedidoStatus.CANCELADO) || order.getStatus().equals(PedidoStatus.DEVOLVIDO)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível alterar o status de um pedido que já foi entregue, cancelado ou devolvido.");
+        }
+
 
         return order;
     }

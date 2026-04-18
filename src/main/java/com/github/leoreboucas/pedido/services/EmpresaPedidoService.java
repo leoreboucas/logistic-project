@@ -2,9 +2,6 @@ package com.github.leoreboucas.pedido.services;
 
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicaoRepository;
-import com.github.leoreboucas.centrodistribuicao.TipoCentroDistribuicao;
-import com.github.leoreboucas.empresa.Empresa;
-import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.entregador.EntregadorRepository;
 import com.github.leoreboucas.entregafinal.DTO.CriarPedidoFinalDTO;

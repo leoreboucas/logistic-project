@@ -47,7 +47,7 @@ public class PedidoController {
         return pedidoService.getAllOrdersByCnpj(cnpj);
     }
 
-    @GetMapping
+    @GetMapping("/entregas-parciais")
     public List<ListarEntregasParciaisDTO> getAllPartialDeliveriesByDeliveryManController() {
         String cpf = (String) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
 

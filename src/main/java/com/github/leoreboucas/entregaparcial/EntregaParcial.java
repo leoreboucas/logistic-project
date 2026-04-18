@@ -3,12 +3,12 @@ package com.github.leoreboucas.entregaparcial;
 import com.github.leoreboucas.centrodistribuicao.CentroDistribuicao;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.pedido.Pedido;
-import com.github.leoreboucas.pedido.PedidoStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SQLRestriction("deleted_at IS NULL")
+
 public class EntregaParcial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

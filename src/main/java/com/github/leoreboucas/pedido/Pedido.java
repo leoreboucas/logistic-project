@@ -1,11 +1,10 @@
 package com.github.leoreboucas.pedido;
-
-import com.github.leoreboucas.cliente.Cliente;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +13,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
+@SQLRestriction("deleted_at IS NULL")
 public class Pedido {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

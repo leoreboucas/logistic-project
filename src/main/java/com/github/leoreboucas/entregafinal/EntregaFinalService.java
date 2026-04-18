@@ -1,13 +1,6 @@
 package com.github.leoreboucas.entregafinal;
-
-import com.github.leoreboucas.empresa.Empresa;
-import com.github.leoreboucas.empresa.EmpresaRepository;
-import com.github.leoreboucas.entregador.Entregador;
-import com.github.leoreboucas.entregador.EntregadorRepository;
 import com.github.leoreboucas.entregafinal.DTO.CriarPedidoFinalDTO;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
