@@ -136,7 +136,7 @@ public class EmpresaPedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Centro de Distribuição de Origem não encontrado! Verifique o nome informado e tente novamente.");
         }
 
-        if(order.getDeliveryAttempts() == maxAttempts) {
+        if(order.getDeliveryAttempts() > maxAttempts) {
             order.setStatus(DEVOLVIDO);
             historicoPedidoService.registerOrderHistory(order, EM_DISTRIBUICAO, DEVOLVIDO, "Número máximo de tentativas de entrega atingido. Pedido devolvido para o remetente.");
             pedidoRepository.save(order);
