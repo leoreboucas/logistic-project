@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      - POSTGRES_DB=logistic
+      - POSTGRES_USER=userdocker
+      - POSTGRES_PASSWORD=passworddocker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: logistic-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/logistic
+      - SPRING_DATASOURCE_USERNAME=userdocker
+      - SPRING_DATASOURCE_PASSWORD=passworddocker
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - DELIVERY_MAX_ATTEMPTS=3
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

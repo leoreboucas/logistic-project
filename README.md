@@ -2,7 +2,7 @@
 
 API REST de rastreamento e gestão de entregas, desenvolvida em Java com Spring Boot. O projeto simula o fluxo completo de uma transportadora: do momento em que o fornecedor cria um pedido até a entrega ao destinatário final, passando por centros de distribuição e múltiplos entregadores.
 
-> Projeto de portfólio com foco em arquitetura de software e boas práticas do ecossistema Java/Spring.
+> Projeto de portfólio desenvolvido om foco em arquitetura de software e boas práticas do ecossistema Java/Spring.
 
 ---
 
@@ -15,8 +15,10 @@ API REST de rastreamento e gestão de entregas, desenvolvida em Java com Spring 
 | Banco de dados | PostgreSQL |
 | ORM | JPA / Hibernate |
 | Autenticação | JWT + Spring Security |
+| Documentação | Springdoc OpenAPI / Swagger UI |
 | Testes | JUnit 5 + Mockito |
 | Build | Maven |
+| Containerização | Docker + Docker Compose |
 
 ---
 
@@ -127,7 +129,36 @@ Cobertura dos principais fluxos de negócio:
 
 ---
 
-## ⚙️ Como rodar localmente
+## 🐳 Como rodar com Docker
+
+### Pré-requisitos
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
+
+### Executando
+
+```bash
+docker compose up --build
+```
+
+A API estará disponível em `http://localhost:8080`.  
+A documentação Swagger em `http://localhost:8080/swagger-ui/index.html`.
+
+### Parando
+
+```bash
+docker compose down
+```
+
+Para remover também os dados do banco:
+
+```bash
+docker compose down -v
+```
+
+---
+
+## ⚙️ Como rodar localmente (sem Docker)
 
 ### Pré-requisitos
 
@@ -143,30 +174,17 @@ Copie o arquivo de exemplo e preencha com suas credenciais:
 cp src/main/resources/application.yml.example src/main/resources/application.yml
 ```
 
-Edite o `application.yml` com os dados do seu banco:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/logistic
-    username: seu_usuario
-    password: sua_senha
-
-delivery:
-  max-attempts: 3
-```
-
 ### Executando
 
 ```bash
 mvn spring-boot:run
 ```
 
-A API estará disponível em `http://localhost:8080`.
-
 ---
 
 ## 📋 Principais endpoints
+
+A documentação completa e interativa está disponível no Swagger UI após subir a aplicação.
 
 ### Públicos
 
@@ -201,12 +219,13 @@ A API estará disponível em `http://localhost:8080`.
 
 ## 🗺️ Roadmap
 
-- [ ] Documentação Swagger/OpenAPI
-- [ ] Containerização com Docker
+- [x] Documentação Swagger/OpenAPI
+- [x] Containerização com Docker
+- [ ] Soft delete com `@SQLRestriction`
 
 ---
 
 ## 👤 Autor
 
-**Leonardo Rebouças**
+**Leonardo Rebouças**  
 [github.com/leoreboucas](https://github.com/leoreboucas)

@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -19,3 +19,6 @@ spring:
 jwt:
   secret:
   expiration: 86400000
+
+delivery:
+  max-attempts: 3
