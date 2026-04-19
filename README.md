@@ -1,44 +1,212 @@
-# 📦 API de Rastreamento e Gestão de Entregas
+# 📦 Logistic API
 
-> 🚧 **Atenção:** Este projeto está **em desenvolvimento ativo**. Estruturas, endpoints e regras de negócio podem ser alterados a qualquer momento. **Ainda não está pronto para uso em produção ou execução local.**
+API REST de rastreamento e gestão de entregas, desenvolvida em Java com Spring Boot. O projeto simula o fluxo completo de uma transportadora: do momento em que o fornecedor cria um pedido até a entrega ao destinatário final, passando por centros de distribuição e múltiplos entregadores.
 
-## 📖 Sobre o Projeto
-Backend RESTful desenvolvido para gerenciar o ciclo completo de entregas logísticas, desde a criação do pedido até a confirmação de recebimento pelo cliente. O sistema permite rastreamento público, controle de rotas com múltiplos centros de distribuição e gestão granular por perfis de usuário, seguindo boas práticas de arquitetura e segurança.
+> Projeto de portfólio com foco em arquitetura de software e boas práticas do ecossistema Java/Spring.
 
-## 🛠️ Stack Tecnológica
-- **Java** + **Spring Boot**
-- **PostgreSQL**
-- **JPA / Hibernate**
-- **JWT** (Autenticação e autorização)
-- *(Docker, Swagger/OpenAPI e scripts de deploy serão integrados nas próximas fases)*
+---
 
-## ✨ Funcionalidades em Implementação
-- 🔍 Rastreamento público via código único (sem autenticação)
-- 🔄 Máquina de estados para acompanhar o ciclo de vida do pedido
-- 📦 Entregas parciais para gerenciar trechos de rota
-- 👥 Controle de acesso por perfil (`Empresa`, `Fornecedor`, `Entregador`, `Público`)
-- 📜 Histórico automático de transições de status
-- 🛡️ Validação de regras de negócio (cancelamento por fase, tipos de entrega, `soft deletes`, etc.)
+## 🚀 Tecnologias
 
-## 📡 Estrutura da API (Planejada)
-A API seguirá padrões REST e está sendo organizada por contexto:
-- `/auth` → Autenticação
-- `/rastreamento` → Consulta pública
-- `/pedidos` → Criação, consulta e cancelamento
-- `/entregas-parciais` → Atribuição, conclusão e registro de tentativas
-- `/entregadores` & `/centros` → Cadastros operacionais
+| Camada | Tecnologia |
+|---|---|
+| Linguagem | Java 17 |
+| Framework | Spring Boot 4 |
+| Banco de dados | PostgreSQL |
+| ORM | JPA / Hibernate |
+| Autenticação | JWT + Spring Security |
+| Testes | JUnit 5 + Mockito |
+| Build | Maven |
 
-## 📊 Status Atual & Como Acompanhar o Código
-Este repositório está sendo utilizado principalmente para **documentar a evolução da base de código** e validar a arquitetura. Ainda não há um ambiente configurado para execução.
+---
 
-Para acompanhar o andamento:
-- 📂 **Estrutura de pastas:** Navegue por `src/main/java` para ver como entidades, repositórios, serviços e controladores estão sendo organizados.
-- 🔍 **Histórico de commits:** Cada commit reflete uma etapa de implementação (modelagem, validações, rotas, regras de negócio, etc.).
-- 🧩 **Próximas etapas:** Configuração do banco local via Docker, integração com Swagger, testes automatizados e scripts de inicialização.
+## 🏗️ Arquitetura
 
-## 📌 Observações
-- 🔄 O código está em constante refatoração. Algumas classes ou pacotes podem ser reestruturados sem aviso prévio.
-- 🤝 Contribuições externas ainda não estão abertas. Este repositório serve como registro de estudo e portfólio técnico.
+O projeto segue uma **arquitetura em pacotes por domínio** (package-by-feature), onde cada contexto de negócio agrupa suas próprias entidades, repositórios, serviços, controllers e DTOs. Essa abordagem favorece coesão e facilita a navegação no código.
 
-## 📄 Licença
-Distribuído sob a licença [MIT/Apache 2.0/etc.]. Consulte o arquivo `LICENSE` para mais informações.
+```
+com.github.leoreboucas/
+├── auth/
+├── centrodistribuicao/
+├── cliente/
+├── empresa/
+├── entregador/
+├── entregafinal/
+├── entregaparcial/
+├── fornecedor/
+├── historicopedido/
+├── pedido/
+│   └── services/       ← services separados por ator
+├── rastreamento/
+└── infra/
+    ├── exception/
+    └── security/
+```
+
+A camada `pedido/services` é dividida por ator de negócio (`FornecedorPedidoService`, `EmpresaPedidoService`, `EntregadorPedidoService`), evitando um service monolítico e tornando as responsabilidades explícitas.
+
+---
+
+## 🔄 Fluxo de status de um pedido
+
+```
+Fornecedor cria pedido
+    ↓ AGUARDANDO_POSTAGEM
+
+Empresa confirma postagem
+    ↓ POSTADO
+
+Empresa confirma triagem
+    ↓ EM_TRIAGEM
+
+Empresa envia para transporte  →  cria EntregaParcial
+    ↓ EM_TRANSITO
+
+Entregador confirma chegada no centro transacional
+    ↓ EM_TRANSITO  (registrado no histórico)
+
+Empresa libera para próximo trecho  →  nova EntregaParcial
+    ↓ EM_TRANSITO
+
+Entregador confirma chegada no centro de última milha
+    ↓ EM_DISTRIBUICAO
+
+Empresa envia para entrega final  →  cria EntregaFinal
+    ↓ SAIU_PARA_ENTREGA  (ou DEVOLVIDO se tentativas excedidas)
+
+Entregador registra tentativa
+    → SUCESSO  →  ENTREGUE
+    → FRACASSO  →  EM_DISTRIBUICAO  (retorna ao centro)
+```
+
+Cada mudança de status é registrada na entidade `ORDER_HISTORY`, que serve como trilha de auditoria completa do pedido.
+
+---
+
+## 🔐 Autenticação
+
+O sistema possui **quatro tipos de atores**, cada um com seu próprio fluxo de login e escopo de permissões:
+
+| Ator | Role | Ações principais |
+|---|---|---|
+| Fornecedor | `supplier` | Criar e cancelar pedidos |
+| Empresa | `enterprise` | Gerenciar centros, entregadores e transições de status |
+| Entregador | `delivery_man` | Confirmar chegadas e registrar tentativas de entrega |
+| Cliente | `costumer` | Rastrear pedidos |
+
+A autenticação é feita via **JWT stateless**. O token carrega o CPF ou CNPJ do usuário e sua role, que são usados nos controllers para validar identidade e permissão sem consulta adicional ao banco.
+
+---
+
+## 📐 Decisões técnicas relevantes
+
+**Destinatário sem cadastro obrigatório**
+O pedido armazena nome e endereço do destinatário diretamente, sem exigir que ele esteja cadastrado no sistema. Isso reflete como transportadoras reais operam.
+
+**EntregaParcial criada apenas na saída**
+A entidade representa o trecho de transporte entre centros. É criada quando o pedido *sai* de um centro, não quando chega — simplificando o modelo sem perder rastreabilidade.
+
+**EntregaFinal por tentativa**
+A cada nova saída para entrega ao destinatário, um novo registro de `EntregaFinal` é criado. O contador de tentativas fica no `Pedido` e, ao exceder o limite configurável, o sistema muda o status para `DEVOLVIDO` automaticamente.
+
+**Services separados por ator**
+Em vez de um `PedidoService` único com centenas de linhas, as regras de negócio ficam em services específicos por quem executa a ação. Isso torna o código mais legível e os testes mais focados.
+
+---
+
+## 🧪 Testes
+
+Testes unitários implementados com **JUnit 5 + Mockito**, organizados com `@Nested` seguindo o padrão AAA (Arrange, Act, Assert).
+
+Cobertura dos principais fluxos de negócio:
+
+- `FornecedorPedidoService` — criação e cancelamento de pedidos
+- `EmpresaPedidoService` — confirmações de postagem, triagem, envio e entrega final
+- `EntregadorPedidoService` — confirmação de chegada e registro de tentativas
+- `PedidoService` — rastreamento e validação de transições de status
+
+---
+
+## ⚙️ Como rodar localmente
+
+### Pré-requisitos
+
+- Java 17+
+- Maven
+- PostgreSQL rodando localmente
+
+### Configuração
+
+Copie o arquivo de exemplo e preencha com suas credenciais:
+
+```bash
+cp src/main/resources/application.yml.example src/main/resources/application.yml
+```
+
+Edite o `application.yml` com os dados do seu banco:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/logistic
+    username: seu_usuario
+    password: sua_senha
+
+delivery:
+  max-attempts: 3
+```
+
+### Executando
+
+```bash
+mvn spring-boot:run
+```
+
+A API estará disponível em `http://localhost:8080`.
+
+---
+
+## 📋 Principais endpoints
+
+### Públicos
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/fornecedores` | Cadastrar fornecedor |
+| `POST` | `/clientes` | Cadastrar cliente |
+| `POST` | `/empresas` | Cadastrar empresa |
+| `POST` | `/auth/login/fornecedor` | Login do fornecedor |
+| `POST` | `/auth/login/cliente` | Login do cliente |
+| `POST` | `/auth/login/empresa` | Login da empresa |
+| `POST` | `/auth/login/entregador` | Login do entregador |
+| `GET` | `/rastreamento/{trackingCode}` | Rastrear pedido |
+
+### Protegidos (requerem JWT)
+
+| Método | Rota | Role |
+|---|---|---|
+| `POST` | `/pedidos` | supplier |
+| `PATCH` | `/pedidos/{id}/cancelar` | supplier |
+| `PATCH` | `/pedidos/{id}/confirmar-postagem` | enterprise |
+| `PATCH` | `/pedidos/{id}/confirmar-triagem` | enterprise |
+| `PATCH` | `/pedidos/{id}/confirmar-envio` | enterprise |
+| `PATCH` | `/pedidos/{id}/saiu-para-entrega` | enterprise |
+| `POST` | `/entregadores` | enterprise |
+| `POST` | `/centro-distribuicoes` | enterprise |
+| `PATCH` | `/pedidos/{id}/confirmar-chegada` | delivery_man |
+| `PATCH` | `/pedidos/{id}/tentativa-entrega` | delivery_man |
+| `GET` | `/entregas-parciais` | delivery_man |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Documentação Swagger/OpenAPI
+- [ ] Containerização com Docker
+
+---
+
+## 👤 Autor
+
+**Leonardo Rebouças**
+[github.com/leoreboucas](https://github.com/leoreboucas)
