@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SQLRestriction("deleted_at IS NULL")
 public class EntregaFinal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@SQLRestriction("deleted_at IS NULL")
 public class Pedido {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
