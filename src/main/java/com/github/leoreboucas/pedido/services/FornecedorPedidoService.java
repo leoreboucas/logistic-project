@@ -1,6 +1,5 @@
 package com.github.leoreboucas.pedido.services;
 
-import com.github.leoreboucas.cliente.ClienteRepository;
 import com.github.leoreboucas.fornecedor.Fornecedor;
 import com.github.leoreboucas.fornecedor.FornecedorRepository;
 import com.github.leoreboucas.historicopedido.HistoricoPedidoService;
@@ -72,6 +71,11 @@ public class FornecedorPedidoService {
         }
 
         Pedido order = pedidoRepository.findByTrackingCode(trackingCode);
+
+        if(order == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado.");
+        }
+
         PedidoStatus previousStatus = order.getStatus();
 
         if(!order.getFornecedor().getCnpj().equals(cnpj)) {
