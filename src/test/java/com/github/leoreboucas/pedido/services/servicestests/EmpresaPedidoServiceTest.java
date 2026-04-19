@@ -54,7 +54,7 @@ public class EmpresaPedidoServiceTest {
     private EmpresaPedidoService empresaPedidoService;
 
     @Nested
-    class confirmPostByEnterprise {
+    class ConfirmPostByEnterprise {
         @Test
         void cannotChangeConfirmPostOnThisActualStatus() {
             Pedido order = new Pedido();
@@ -85,7 +85,7 @@ public class EmpresaPedidoServiceTest {
     }
 
     @Nested
-    class confirmScreeningByEnterprise {
+    class ConfirmScreeningByEnterprise {
         @Test
         void cannotChangeConfirmScreeningOnThisActualStatus() {
             Pedido order = new Pedido();
@@ -116,7 +116,7 @@ public class EmpresaPedidoServiceTest {
     }
 
     @Nested
-    class confirmShippingByEnterprise {
+    class ConfirmShippingByEnterprise {
         @Test
         void originCenterNotFound() {
             Pedido order = new Pedido();
@@ -235,7 +235,7 @@ public class EmpresaPedidoServiceTest {
         }
     }
     @Nested
-    class outForDeliveryByEnterprise {
+    class OutForDeliveryByEnterprise {
         @Test
         void cannotChangeOutForDeliveryOnActualStatus() {
             Pedido order = new Pedido();

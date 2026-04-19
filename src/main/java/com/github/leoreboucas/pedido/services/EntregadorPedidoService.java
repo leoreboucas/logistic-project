@@ -73,6 +73,10 @@ public class EntregadorPedidoService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrega final não encontrada para o código de rastreamento informado! Verifique as informações e tente novamente.");
         }
 
+        if(!finalDelivery.getDeliveryMan().equals(deliveryMan)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Entregador não autorizado a registrar tentativa de entrega para este pedido! Verifique as informações e tente novamente.");
+        }
+
         Pedido order = pedidoService.validationOnChangeStatus(finalDelivery.getOriginCenter().getEnterprise().getCnpj(), trackingCode);
 
         if(order.getStatus() != SAIU_PARA_ENTREGA) {
