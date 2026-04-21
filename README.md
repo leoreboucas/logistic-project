@@ -120,6 +120,8 @@ Em vez de um `PedidoService` único com centenas de linhas, as regras de negóci
 
 Testes unitários implementados com **JUnit 5 + Mockito**, organizados com `@Nested` seguindo o padrão AAA (Arrange, Act, Assert).
 
+Testes de integração implementados com **JUnit 5 + TestContainers**, utilizando uma base de teste compartilhada para validar o comportamento end-to-end dos endpoints e fluxos completos.
+
 Cobertura dos principais fluxos de negócio:
 
 - `FornecedorPedidoService` — criação e cancelamento de pedidos
