@@ -43,9 +43,7 @@ public class FornecedorPedidoServiceTest {
         @Test
         void notHaveSupplierOnCreateOrder() {
             when(fornecedorRepository.findByCnpj(cnpj)).thenReturn(null);
-            assertThrows(ResponseStatusException.class, () -> {
-                fornecedorPedidoService.createOrderBySupplier(new CriarPedidoDTO(), cnpj);
-            });
+            assertThrows(ResponseStatusException.class, () -> fornecedorPedidoService.createOrderBySupplier(new CriarPedidoDTO(), cnpj));
             verify(fornecedorRepository, times(1)).findByCnpj(cnpj);
         }
 
@@ -76,9 +74,7 @@ public class FornecedorPedidoServiceTest {
         @Test
         void doNotHaveSupplierOnCancelOrder() {
             when(fornecedorRepository.findByCnpj(cnpj)).thenReturn(null);
-            assertThrows(ResponseStatusException.class, () -> {
-                fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj);
-            });
+            assertThrows(ResponseStatusException.class, () -> fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj));
             verify(fornecedorRepository, times(1)).findByCnpj(cnpj);
         }
 
@@ -89,9 +85,7 @@ public class FornecedorPedidoServiceTest {
 
             when(pedidoRepository.findByTrackingCode(trackingCode)).thenReturn(null);
 
-            assertThrows(ResponseStatusException.class, () -> {
-                fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj);
-            });
+            assertThrows(ResponseStatusException.class, () -> fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj));
 
             verify(fornecedorRepository).findByCnpj(cnpj);
             verify(pedidoRepository).findByTrackingCode(trackingCode);
@@ -109,9 +103,7 @@ public class FornecedorPedidoServiceTest {
             order.setFornecedor(supplier);
             when(pedidoRepository.findByTrackingCode(trackingCode)).thenReturn(order);
 
-            assertThrows(ResponseStatusException.class, () -> {
-                fornecedorPedidoService.cancelOrderBySupplier(trackingCode, "differentCnpj");
-            });
+            assertThrows(ResponseStatusException.class, () -> fornecedorPedidoService.cancelOrderBySupplier(trackingCode, "differentCnpj"));
 
             verify(fornecedorRepository).findByCnpj("differentCnpj");
             verify(pedidoRepository).findByTrackingCode(trackingCode);
@@ -128,9 +120,7 @@ public class FornecedorPedidoServiceTest {
             order.setFornecedor(supplier);
             when(pedidoRepository.findByTrackingCode(trackingCode)).thenReturn(order);
 
-            assertThrows(ResponseStatusException.class, () -> {
-                fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj);
-            });
+            assertThrows(ResponseStatusException.class, () -> fornecedorPedidoService.cancelOrderBySupplier(trackingCode, cnpj));
 
             verify(fornecedorRepository).findByCnpj(cnpj);
             verify(pedidoRepository).findByTrackingCode(trackingCode);
