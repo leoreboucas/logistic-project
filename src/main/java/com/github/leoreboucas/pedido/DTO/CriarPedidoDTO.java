@@ -13,6 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CriarPedidoDTO {
     @NotBlank
+    private String customerCpf;
+    @NotBlank
     private String customerCompleteName;
     @NotBlank
     private String cellNumber;

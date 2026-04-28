@@ -1,13 +1,16 @@
 package com.github.leoreboucas.pedido.controllers;
 
 import com.github.leoreboucas.IntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -24,8 +27,10 @@ public class ControllerTest extends IntegrationTestBase {
     MockMvc mockMvc;
 
     @Autowired
-    private JsonMapper jsonMapper;
+    JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private JsonMapper jsonMapper;
     @Test
     void shouldCompleteOrderFlow () throws Exception {
         String registerSupplierBody = """
@@ -68,6 +73,7 @@ public class ControllerTest extends IntegrationTestBase {
         String createOrderBody = """
                 {
                   "customerCompleteName": "João da Silva Sauro",
+                  "customerCpf": "12345678901",
                   "cellNumber": "11988887777",
                   "cep": "01001000",
                   "street": "Praça da Sé",
@@ -319,6 +325,7 @@ public class ControllerTest extends IntegrationTestBase {
 
         String createOrderBody = """
                 {
+                  "customerCpf": "12345678901",
                   "customerCompleteName": "João da Silva Sauro",
                   "cellNumber": "11988887777",
                   "cep": "01001000",
@@ -496,6 +503,7 @@ public class ControllerTest extends IntegrationTestBase {
 
         String createOrderBody = """
                 {
+                  "customerCpf": "12345678901",
                   "customerCompleteName": "João da Silva Sauro",
                   "cellNumber": "11988887777",
                   "cep": "01001000",

@@ -20,6 +20,8 @@ public class Pedido {
     private Fornecedor fornecedor;
     @Column(name = "customer_complete_name")
     private String customerCompleteName;
+    @Column(name = "customer_cpf", unique = true)
+    private String customerCpf;
     @Column(name = "cell_number")
     private String cellNumber;
     private String cep;
