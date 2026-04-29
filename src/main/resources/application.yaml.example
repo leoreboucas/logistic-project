@@ -22,3 +22,7 @@ jwt:
 
 delivery:
   max-attempts: 3
+
+internal:
+  api:
+    key: your-internal-api-key-here

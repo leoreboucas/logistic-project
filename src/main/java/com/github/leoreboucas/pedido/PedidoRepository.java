@@ -7,4 +7,5 @@ import java.util.List;
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     Pedido findByTrackingCode(String trackingCode);
     List<Pedido> findByFornecedorCnpj(String cnpj);
+    List<Pedido> findByCustomerCpf(String customerCpf);
 }

@@ -49,4 +49,5 @@ public class JwtFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"status\": 401, \"message\": \"Token inválido ou expirado.\"}");
         }
     }
+
 }
