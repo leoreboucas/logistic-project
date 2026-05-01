@@ -1,5 +1,7 @@
 package com.github.leoreboucas.internal;
 
+import com.github.leoreboucas.cliente.ClienteRepository;
+import com.github.leoreboucas.empresa.EmpresaRepository;
 import com.github.leoreboucas.entregador.Entregador;
 import com.github.leoreboucas.entregador.EntregadorRepository;
 import com.github.leoreboucas.entregafinal.EntregaFinal;
@@ -22,6 +24,8 @@ public class InternalService {
     private final EntregadorRepository entregadorRepository;
     private final EntregaParcialRepository entregaParcialRepository;
     private final EntregaFinalRepository entregaFinalRepository;
+    private final EmpresaRepository empresaRepository;
+    private final ClienteRepository clienteRepository;
 
     List<Pedido> getOrders(String customerCpf) {
         if(customerCpf.isEmpty()) {
@@ -45,5 +49,18 @@ public class InternalService {
         List<EntregaFinal> finalDeliveries = entregaFinalRepository.findByDeliveryMan(deliveryMan.get());
 
         return new PedidosEntregadorDTO(partialDeliveries, finalDeliveries);
+    }
+
+    Boolean confirmUserValidity (String document, RolesPermitidosInternal role) {
+        if(document.isEmpty()) {
+            throw new IllegalArgumentException("Documento é obrigatório.");
+        }
+
+
+        return switch (role) {
+            case ENTERPRISE -> empresaRepository.findByCnpj(document) != null;
+            case DELIVERY_MAN -> entregadorRepository.findByCpf(document) != null;
+            case CUSTOMER -> clienteRepository.findByCpf(document) != null;
+        };
     }
 }

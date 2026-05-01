@@ -2,18 +2,21 @@ package com.github.leoreboucas.internal;
 
 import com.github.leoreboucas.internal.DTO.*;
 import com.github.leoreboucas.pedido.Pedido;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/internal/pedidos")
+@RequestMapping("/internal")
 @RequiredArgsConstructor
 public class InternalController {
     private final InternalService internalService;
 
-    @GetMapping(params = "customerCpf")
+    @GetMapping(path = "/pedidos", params = "customerCpf")
     public List<PedidoClienteDTO> getOrdersByCustomerCpf(@RequestParam(required = false) String customerCpf) {
         List<Pedido> orders = internalService.getOrders(customerCpf);
         return orders.stream().map(order -> new PedidoClienteDTO(
@@ -30,7 +33,7 @@ public class InternalController {
                 )).toList();
     }
 
-    @GetMapping(params = "deliveryManCpf")
+    @GetMapping(path = "/pedidos", params = "deliveryManCpf")
     PedidosEntregadorResponseDTO getOrdersByDeliveryManCpf(@RequestParam(required = false) String deliveryManCpf) {
         PedidosEntregadorDTO orders = internalService.getDeliveryManOrders(deliveryManCpf);
         return new PedidosEntregadorResponseDTO(
@@ -56,6 +59,15 @@ public class InternalController {
                         finalDelivery.getOrder().getObservation()
                 )).toList()
         );
+    }
 
+    @GetMapping(path = "usuarios/verify", params = {"document", "role"})
+    ResponseEntity<?> confirmUserValidity(@RequestParam String document, @RequestParam RolesPermitidosInternal role) {
+        Boolean isValid = internalService.confirmUserValidity(document, role);
+        if (isValid) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
