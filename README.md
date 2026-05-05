@@ -2,7 +2,7 @@
 
 API REST de rastreamento e gestão de entregas, desenvolvida em Java com Spring Boot. O projeto simula o fluxo completo de uma transportadora: do momento em que o fornecedor cria um pedido até a entrega ao destinatário final, passando por centros de distribuição e múltiplos entregadores.
 
-> Projeto de portfólio desenvolvido om foco em arquitetura de software e boas práticas do ecossistema Java/Spring.
+> Projeto de portfólio desenvolvido com foco em arquitetura de software e boas práticas do ecossistema Java/Spring.
 
 ---
 
@@ -137,7 +137,9 @@ Cobertura dos principais fluxos de negócio:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
 
-### Executando
+### Opção 1 — Apenas o logistic
+
+Sobe somente a API `logistic` com seu banco de dados:
 
 ```bash
 docker compose up --build
@@ -145,6 +147,24 @@ docker compose up --build
 
 A API estará disponível em `http://localhost:8080`.  
 A documentação Swagger em `http://localhost:8080/swagger-ui/index.html`.
+
+### Opção 2 — Stack completa (logistic + messaging)
+
+Sobe todos os serviços do ecossistema: `logistic`, `logistic-messaging`, Redis e ambos os bancos PostgreSQL. Requer um arquivo `.env` na raiz deste projeto com as variáveis do `messaging` (veja o README do [logistic-messaging](../logistic-messaging/README.md)).
+
+```bash
+docker compose --env-file .env -f docker-compose.unified.yml up --build
+```
+
+Serviços e portas:
+
+| Serviço | Porta |
+|---------|-------|
+| logistic (API) | 8080 |
+| messaging (API + WS) | 8081 |
+| logistic_db (PostgreSQL) | 5432 |
+| messaging_db (PostgreSQL) | 5433 |
+| Redis | 6379 |
 
 ### Parando
 
