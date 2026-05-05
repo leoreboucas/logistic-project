@@ -219,14 +219,6 @@ A documentação completa e interativa está disponível no Swagger UI após sub
 
 ---
 
-## 🗺️ Roadmap
-
-- [x] Documentação Swagger/OpenAPI
-- [x] Containerização com Docker
-- [ ] Soft delete com `@SQLRestriction`
-
----
-
 ## 👤 Autor
 
 **Leonardo Rebouças**  
