@@ -18,6 +18,7 @@ public class InternalController {
 
     @GetMapping(path = "/pedidos", params = "customerCpf")
     public List<PedidoClienteDTO> getOrdersByCustomerCpf(@RequestParam(required = false) String customerCpf) {
+        System.out.println(customerCpf);
         List<Pedido> orders = internalService.getOrders(customerCpf);
         return orders.stream().map(order -> new PedidoClienteDTO(
                         order.getTrackingCode(),

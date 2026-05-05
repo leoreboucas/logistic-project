@@ -31,7 +31,6 @@ public class InternalService {
         if(customerCpf.isEmpty()) {
             throw new IllegalArgumentException("CPF do cliente é obrigatório.");
         }
-
         return pedidoRepository.findByCustomerCpf(customerCpf);
     }
 

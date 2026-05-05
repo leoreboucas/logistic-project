@@ -42,6 +42,7 @@ public class FornecedorPedidoService {
         Pedido newOrder = new Pedido();
         newOrder.setFornecedor(supplier);
         newOrder.setCellNumber(criarPedidoDTO.getCellNumber());
+        newOrder.setCustomerCpf(criarPedidoDTO.getCustomerCpf());
         newOrder.setCustomerCompleteName(criarPedidoDTO.getCustomerCompleteName());
         newOrder.setCep(criarPedidoDTO.getCep());
         newOrder.setHouseNumber(criarPedidoDTO.getHouseNumber());

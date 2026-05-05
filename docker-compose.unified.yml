@@ -1,0 +1,76 @@
+services:
+  logistic_db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=logistic
+      - POSTGRES_USER=userdocker
+      - POSTGRES_PASSWORD=passworddocker
+    ports:
+      - "5432:5432"
+    networks:
+      - logistic-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  logistic:
+    build: .
+    container_name: logistic-app
+    ports:
+      - "8080:8080"
+    networks:
+      - logistic-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://logistic_db:5432/logistic
+      - SPRING_DATASOURCE_USERNAME=userdocker
+      - SPRING_DATASOURCE_PASSWORD=passworddocker
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - DELIVERY_MAX_ATTEMPTS=3
+    depends_on:
+      - logistic_db
+
+  messaging_db:
+    image: 'postgres:latest'
+    volumes:
+      - messaging_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=logistic_messaging
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+    ports:
+      - '5433:5432'
+    networks:
+      - logistic-network
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    networks:
+      - logistic-network
+  messaging:
+    build: ../logistic-messaging
+    ports:
+      - '8081:8081'
+    networks:
+      - logistic-network
+    depends_on:
+      - messaging_db
+      - redis
+      - logistic
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://messaging_db:5432/logistic_messaging
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_DATA_REDIS_HOST=redis
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY}
+      - LOGISTIC_BASE_URL=http://logistic:8080
+
+volumes:
+  postgres_data:
+  messaging_postgres_data:
+
+networks:
+  logistic-network:
+    driver: bridge
