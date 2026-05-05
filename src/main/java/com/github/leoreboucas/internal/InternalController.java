@@ -2,9 +2,7 @@ package com.github.leoreboucas.internal;
 
 import com.github.leoreboucas.internal.DTO.*;
 import com.github.leoreboucas.pedido.Pedido;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
